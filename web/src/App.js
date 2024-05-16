@@ -10,6 +10,8 @@ const App = () => {
     const [imgURL, setImgURL] = useState('');
     const [backgroundURL, setBackgroundURL] = useState('');
 
+    // maintain a mapping from URL to objectID?
+
     useEffect(() => {
         setCanvas(initCanvas());
     }, []); 
@@ -55,6 +57,15 @@ const App = () => {
         });
     }
 
+    const getPositions = () => {
+        console.log("Canvas Size: ", canvas.width, canvas.height);
+
+        canvas.getObjects().forEach(function(object) {
+            console.log("Image URL: ", object._element.currentSrc);
+            console.log("Coords: ", object.lineCoords);
+        });
+    }
+
     return(
       <div>
         <h1>react sux</h1>
@@ -79,6 +90,7 @@ const App = () => {
             </div>
         </form>
        <br/><br/>
+       <button onClick={() => getPositions()}>Get Positions</button>
        <canvas id="canvas" />
       </div>
     );
