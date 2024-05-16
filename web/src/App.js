@@ -10,7 +10,7 @@ import { fabric } from 'fabric';
 const App = () => {
     const [canvas, setCanvas] = useState('');
     const [imgURL, setImgURL] = useState('');
-
+    const [backgroundURL, setBackgroundURL] = useState('');
 
     const img = new Image();
     img.src = 'https://encrypted-tbn2.gstatic.com/images?q=tbn:ANd9GcQLzzJr2hfB8D9UkamsuO8NwMn3b6CwsxzQTeQNx6tKyiwmIcQL';
@@ -24,14 +24,30 @@ const App = () => {
         new fabric.Canvas('canvas', {
             height: 800,
             width: 800,
+            //backgroundImage: backgroundURL,
             backgroundImage:'https://hips.hearstapps.com/hmg-prod/images/dog-puppy-on-garden-royalty-free-image-1586966191.jpg?crop=0.752xw:1.00xh;0.175xw,0&resize=1200:*'
         })
         // backgroundImage:'https://hips.hearstapps.com/hmg-prod/images/dog-puppy-on-garden-royalty-free-image-1586966191.jpg?crop=0.752xw:1.00xh;0.175xw,0&resize=1200:*'
     )
 
-    const setBackground = canvi => {
-        console.log('setBackground')
-        canvi.setBackgroundImage('https://hips.hearstapps.com/hmg-prod/images/dog-puppy-on-garden-royalty-free-image-1586966191.jpg?crop=0.752xw:1.00xh;0.175xw,0&resize=1200:*');
+    const setBackground = (e, url, canvi) => {
+        e.preventDefault();
+        // fabric.Image.fromURL(url, function(img) {
+        //     img.scaleToWidth(canvas.width);
+        //     img.scaleToHeight(canvas.height);
+        //     canvas.setBackgroundImage(img);
+        //     canvas.renderAll();
+        // });
+
+
+        
+        // console.log('setBackground');
+        canvi.setBackgroundImage(url, canvi.renderAll.bind(canvi));
+        
+        canvi.setHeight(img.height);
+        canvi.setWidth(img.width);
+        canvi.renderAll();
+        setBackgroundURL('');        // reset the image URL
     }
     
     const addRect = canvi => {
@@ -67,9 +83,9 @@ const App = () => {
     //     </div>
     // )
     return(
+    <div>
       <div>
         <h1>react sux</h1>
-        <button onClick={() => addRect(canvas)}>Rectangle</button>
         <form onSubmit={e => addImg(e, imgURL, canvas)}>
           <div>
             <input 
@@ -80,8 +96,23 @@ const App = () => {
             <button type="submit">Add Image</button>
           </div>
         </form>
+        <button onClick={() => addRect(canvas)}>Add Rectangle</button>
        <br/><br/>
        <canvas id="canvas" />
+      </div>
+
+      <div>
+        <form onSubmit={ f => setBackground(f, backgroundURL, canvas)}>
+            <div>
+                <input
+                    type="text"
+                    value={backgroundURL}
+                    onChange={ f => setBackgroundURL(f.target.value)}
+                />
+                <button type="submit">Set Background</button>
+            </div>
+        </form>
+      </div>
       </div>
     );
   }
