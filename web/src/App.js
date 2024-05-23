@@ -26,6 +26,7 @@ const App = () => {
     const [backgroundURL, setBackgroundURL] = useState('https://hips.hearstapps.com/hmg-prod/images/dog-puppy-on-garden-royalty-free-image-1586966191.jpg?crop=0.752xw:1.00xh;0.175xw,0&resize=1200:*');
     const [backendURL, setBackendURL] = useState('http://127.0.0.1:5000');
     const [waitingID, setWaitingID] = useState('');
+    // const [drawingMode, setDrawingMode] = useState(true);
 
     // maintain a mapping from URL to objectID?
 
@@ -38,8 +39,8 @@ const App = () => {
             height: 800,
             width: 800,
             //backgroundImage: backgroundURL,
-            backgroundImage:'https://hips.hearstapps.com/hmg-prod/images/dog-puppy-on-garden-royalty-free-image-1586966191.jpg?crop=0.752xw:1.00xh;0.175xw,0&resize=1200:*'
-
+            backgroundImage:'https://hips.hearstapps.com/hmg-prod/images/dog-puppy-on-garden-royalty-free-image-1586966191.jpg?crop=0.752xw:1.00xh;0.175xw,0&resize=1200:*',
+            isDrawingMode: false
         })
     )
 
@@ -73,6 +74,10 @@ const App = () => {
           canvi.renderAll();
           setImgURL('');        // reset the image URL
         });
+    }
+
+    const toggleDrawingMode = () => {
+      canvas.isDrawingMode = !canvas.isDrawingMode;
     }
 
     const getPositions = () => {
@@ -151,6 +156,8 @@ const App = () => {
        <br/><br/>
        <button onClick={() => getPositions()}>Get Positions</button>
        <button onClick={() => postData()}>Post Data</button>
+       <button onClick={() => toggleDrawingMode()}>Toggle Drawing Mode</button>
+       {/* <button onClick={() => dumpPath()}>Dump Path</button> */}
        <canvas id="canvas" />
       </div>
     );
