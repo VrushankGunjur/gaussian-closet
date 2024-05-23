@@ -2,6 +2,9 @@ import './App.css';
 import { FabricJSCanvas } from './components/canvas.js';
 import React, { useState, useEffect } from 'react';
 import { fabric } from 'fabric';
+import axios from 'axios';
+
+// Front-end logic
 
 // https://aprilescobar.medium.com/part-3-fabric-js-on-react-fabric-image-fromurl-4185e0d945d3
 
@@ -9,6 +12,7 @@ const App = () => {
     const [canvas, setCanvas] = useState('');
     const [imgURL, setImgURL] = useState('');
     const [backgroundURL, setBackgroundURL] = useState('');
+    const [backendURL, setBackendURL] = useState('http://127.0.0.1:5000');
 
     // maintain a mapping from URL to objectID?
 
@@ -67,9 +71,34 @@ const App = () => {
         });
     }
 
+    const postData = async () => {
+      console.log("Sending post request to backend");
+      const client = axios.create({
+        baseURL: backendURL + "/api",
+        headers: {
+          "Content-Type": "application/json",
+          "Access-Control-Allow-Origin": backendURL
+        }
+      });
+
+      try {
+        const response = await client.post("/in_fill", {"hello": 'this is my message from the client'});
+        console.log(response.data);
+      } catch (err) {
+        console.error("Error posting data:", err);
+        throw err;
+      }
+    }
+
     return(
       <div>
         <h1>react sux</h1>
+          <div>
+            <input type="text"
+                   value={backendURL}
+                   onChange = { e => setBackendURL(e.target.value) }
+            />
+          </div>
         <form onSubmit={e => addImg(e, imgURL, canvas)}>
           <div>
             <input 
@@ -92,6 +121,7 @@ const App = () => {
         </form>
        <br/><br/>
        <button onClick={() => getPositions()}>Get Positions</button>
+       <button onClick={() => postData()}>Post Data</button>
        <canvas id="canvas" />
       </div>
     );
