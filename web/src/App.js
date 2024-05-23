@@ -6,13 +6,26 @@ import axios from 'axios';
 
 // Front-end logic
 
+async function imageUrlToBase64(url) {
+  const response = await fetch(url);
+  const blob = await response.blob();
+  return new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onloadend = () => resolve(reader.result);
+      reader.onerror = () => reject(new Error('Failed to convert image to base64'));
+      reader.readAsDataURL(blob);
+  });
+}
+
+
 // https://aprilescobar.medium.com/part-3-fabric-js-on-react-fabric-image-fromurl-4185e0d945d3
 
 const App = () => {
     const [canvas, setCanvas] = useState('');
-    const [imgURL, setImgURL] = useState('');
-    const [backgroundURL, setBackgroundURL] = useState('');
+    const [imgURL, setImgURL] = useState('https://starwalk.space/gallery/images/what-is-space/1920x1080.jpg');
+    const [backgroundURL, setBackgroundURL] = useState('https://hips.hearstapps.com/hmg-prod/images/dog-puppy-on-garden-royalty-free-image-1586966191.jpg?crop=0.752xw:1.00xh;0.175xw,0&resize=1200:*');
     const [backendURL, setBackendURL] = useState('http://127.0.0.1:5000');
+    const [waitingID, setWaitingID] = useState('');
 
     // maintain a mapping from URL to objectID?
 
@@ -81,9 +94,25 @@ const App = () => {
         }
       });
 
+      let urls = [];
+      let coords = []
+      canvas.getObjects().forEach(function(object) {
+        urls.push(object._element.currentSrc);
+        coords.push(object.lineCoords)
+      }); 
+
+      let data = {
+        bg_image_url: backgroundURL,
+        bg_height: canvas.height,
+        bg_width: canvas.width,
+        fg_image_urls: urls,
+        fg_image_coords: coords
+      };
+
       try {
-        const response = await client.post("/in_fill", {"hello": 'this is my message from the client'});
+        const response = await client.post("/in_fill", data);
         console.log(response.data);
+        setWaitingID(response.data.id);
       } catch (err) {
         console.error("Error posting data:", err);
         throw err;
