@@ -32,7 +32,7 @@ const App = () => {
 
     useEffect(() => {
         setCanvas(initCanvas());
-    }, []); 
+    }, []);
     
     const initCanvas = () => (
         new fabric.Canvas('canvas', {
@@ -78,14 +78,29 @@ const App = () => {
 
     const toggleDrawingMode = () => {
       canvas.isDrawingMode = !canvas.isDrawingMode;
+      canvas.freeDrawingBrush.width = 20;
+      canvas.freeDrawingBrush.color = "rgba(255,0,0,.5)";
     }
 
     const getPositions = () => {
+        console.log(canvas);
         console.log("Canvas Size: ", canvas.width, canvas.height);
 
         canvas.getObjects().forEach(function(object) {
+          // Object is bounding line
+          if ("path" in object) {
+            object.fill = 'red';
+            console.log(object)
+            console.log(object.toClipPathSVG())
+            console.log(object.toSVG())
+            console.log(object.toDatalessObject())
+          }
+          
+          // Object is a foreground image
+          else {
             console.log("Image URL: ", object._element.currentSrc);
             console.log("Coords: ", object.lineCoords);
+          }
         });
     }
 
@@ -100,19 +115,33 @@ const App = () => {
       });
 
       let urls = [];
-      let coords = []
+      let coords = [];
+      let paths = [];
+
       canvas.getObjects().forEach(function(object) {
-        urls.push(object._element.currentSrc);
-        coords.push(object.lineCoords)
+        if ("path" in object) {
+          paths.push(object.toSVG());
+        } else {
+          urls.push(object._element.currentSrc);
+          coords.push(object.lineCoords)
+        }
       }); 
 
+      if (urls.length == 0 || paths.length == 0) {
+        console.log("No foreground image or masks supplied.");
+        return;
+      }
+
       let data = {
-        bg_image_url: backgroundURL,
+        bg_image_url: canvas.backgroundImage._element.src,
         bg_height: canvas.height,
         bg_width: canvas.width,
         fg_image_urls: urls,
-        fg_image_coords: coords
+        fg_image_coords: coords,
+        paths: paths
       };
+
+      console.log(data)
 
       try {
         const response = await client.post("/in_fill", data);
