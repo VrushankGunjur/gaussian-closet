@@ -1,93 +1,31 @@
 import './App.css';
-import { FabricJSCanvas } from './components/canvas.js';
+import SegmentCanvas from './components/SegmentCanvas.js';
 import React, { useState, useEffect } from 'react';
-import { fabric } from 'fabric';
 import axios from 'axios';
-
-// Front-end logic
-
-async function imageUrlToBase64(url) {
-  const response = await fetch(url);
-  const blob = await response.blob();
-  return new Promise((resolve, reject) => {
-      const reader = new FileReader();
-      reader.onloadend = () => resolve(reader.result);
-      reader.onerror = () => reject(new Error('Failed to convert image to base64'));
-      reader.readAsDataURL(blob);
-  });
-}
 
 // https://aprilescobar.medium.com/part-3-fabric-js-on-react-fabric-image-fromurl-4185e0d945d3
 
 const App = () => {
-    const [canvas, setCanvas] = useState('');
-    const [imgURL, setImgURL] = useState('https://m.media-amazon.com/images/I/81XW83q04fL.jpg');
-    const [backgroundURL, setBackgroundURL] = useState('https://hips.hearstapps.com/hmg-prod/images/dog-puppy-on-garden-royalty-free-image-1586966191.jpg?crop=0.752xw:1.00xh;0.175xw,0&resize=1200:*');
-    const [backendURL, setBackendURL] = useState('http://127.0.0.1:5000');
     const [waitingID, setWaitingID] = useState('');
-    const [isDrawingMode, setIsDrawingMode] = useState(false);
-    // const [drawingMode, setDrawingMode] = useState(true);
+    const [backendURL, setBackendURL] = useState('http://127.0.0.1:5000');
 
-    // maintain a mapping from URL to objectID?
-
-    useEffect(() => {
-        setCanvas(initCanvas());
-    }, []);
+    let c1, c2;
     
-    const initCanvas = () => (
-        new fabric.Canvas('canvas', {
-            height: 800,
-            width: 800,
-            //backgroundImage: backgroundURL,
-            backgroundImage:'https://hips.hearstapps.com/hmg-prod/images/dog-puppy-on-garden-royalty-free-image-1586966191.jpg?crop=0.752xw:1.00xh;0.175xw,0&resize=1200:*',
-            isDrawingMode: isDrawingMode
-        })
-    )
-
-    const setBackground = (e, url, canvi) => {
-        e.preventDefault();
-
-        console.log(url);
-        var img = new Image();
-        img.src = url;
-        img.onload = function() {
-            canvi.setHeight(img.height);
-            canvi.setWidth(img.width);
-            console.log("Image loaded");
-        }
-
-        canvi.setBackgroundImage(url, canvi.renderAll.bind(canvi));
-        
-        console.log(img.width, img.height);
-        canvi.renderAll();
-        setBackgroundURL('');        // reset the image URL
+    const updateC1 = (input) => {
+      console.log("this is the parent. canvas here updated")
+      c1 = input; 
     }
 
-
-    const addImg = (e, url, canvi) => {
-        e.preventDefault();
-        new fabric.Image.fromURL(url, img => {
-          img.scale(0.1);
-          img.moveCursor = 'pointer';
-          canvi.add(img);
-          canvi.centerObject(img);
-          canvi.renderAll();
-          setImgURL('');        // reset the image URL
-        });
-    }
-
-    const toggleDrawingMode = () => {
-      canvas.isDrawingMode = !canvas.isDrawingMode;
-      setIsDrawingMode(canvas.isDrawingMode);
-      canvas.freeDrawingBrush.width = 20;
-      canvas.freeDrawingBrush.color = "rgba(255,0,0,.5)";
+    const updateC2 = (input) => {
+      c2 = input; 
     }
 
     const getPositions = () => {
-        console.log(canvas);
-        console.log("Canvas Size: ", canvas.width, canvas.height);
+      if (typeof c1 !== "undefined") {
+        console.log(c1);
+        console.log("c1 Size: ", c1.width, c1.height);
 
-        canvas.getObjects().forEach(function(object) {
+        c1.getObjects().forEach(function(object) {
           // Object is bounding line
           if ("path" in object) {
             object.fill = 'red';
@@ -103,8 +41,31 @@ const App = () => {
             console.log("Coords: ", object.lineCoords);
           }
         });
-    }
+      }
 
+      if (typeof c2 !== "undefined") {
+        console.log(c2);
+        console.log("c2  Size: ", c2.width, c2.height);
+
+        c2.getObjects().forEach(function(object) {
+          // Object is bounding line
+          if ("path" in object) {
+            object.fill = 'red';
+            console.log(object)
+            console.log(object.toClipPathSVG())
+            console.log(object.toSVG())
+            console.log(object.toDatalessObject())
+          }
+          
+          // Object is a foreground image
+          else {
+            console.log("Image URL: ", object._element.currentSrc);
+            console.log("Coords: ", object.lineCoords);
+          }
+        });
+      }
+    }
+    
     const postData = async () => {
       console.log("Sending post request to backend");
       const client = axios.create({
@@ -119,7 +80,7 @@ const App = () => {
       let coords = [];
       let paths = [];
 
-      canvas.getObjects().forEach(function(object) {
+      c1.getObjects().forEach(function(object) {
         if ("path" in object) {
           paths.push(object.toSVG());
         } else {
@@ -134,9 +95,9 @@ const App = () => {
       }
 
       let data = {
-        bg_image_url: canvas.backgroundImage._element.src,
-        bg_height: canvas.height,
-        bg_width: canvas.width,
+        bg_image_url: c1.backgroundImage._element.src,
+        bg_height: c1.height,
+        bg_width: c1.width,
         fg_image_urls: urls,
         fg_image_coords: coords,
         paths: paths
@@ -155,40 +116,11 @@ const App = () => {
     }
 
     return(
-      <div>
-        <h1>react sux</h1>
-          <div>
-            <input type="text"
-                   value={backendURL}
-                   onChange = { e => setBackendURL(e.target.value) }
-            />
-          </div>
-        <form onSubmit={e => addImg(e, imgURL, canvas)}>
-          <div>
-            <input 
-              type="text" 
-              value={imgURL} 
-              onChange={ e => setImgURL(e.target.value)} 
-            />
-            <button type="submit">Add Image</button>
-          </div>
-        </form>
-        <form onSubmit={ f => setBackground(f, backgroundURL, canvas)}>
-            <div>
-                <input
-                    type="text"
-                    value={backgroundURL}
-                    onChange={ f => setBackgroundURL(f.target.value)}
-                />
-                <button type="submit">Set Background</button>
-            </div>
-        </form>
-       <br/><br/>
-       <button onClick={() => getPositions()}>Get Positions</button>
-       <button onClick={() => postData()}>Post Data</button>
-       <button onClick={() => toggleDrawingMode()}>Toggle Drawing Mode {isDrawingMode ? "(on)" : "(off)"}</button>
-       {/* <button onClick={() => dumpPath()}>Dump Path</button> */}
-       <canvas id="canvas" />
+      <div class="container">
+        <button onClick={() => postData()}>Post Data</button>
+        <button onClick={() => getPositions()}>Get All Positions</button>
+        <SegmentCanvas cid={"bg"} updateCanvas={updateC1}/>
+        <SegmentCanvas cid={"fg"} updateCanvas={updateC2}/>
       </div>
     );
   }
