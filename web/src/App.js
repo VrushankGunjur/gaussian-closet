@@ -17,15 +17,15 @@ async function imageUrlToBase64(url) {
   });
 }
 
-
 // https://aprilescobar.medium.com/part-3-fabric-js-on-react-fabric-image-fromurl-4185e0d945d3
 
 const App = () => {
     const [canvas, setCanvas] = useState('');
-    const [imgURL, setImgURL] = useState('https://starwalk.space/gallery/images/what-is-space/1920x1080.jpg');
+    const [imgURL, setImgURL] = useState('https://m.media-amazon.com/images/I/81XW83q04fL.jpg');
     const [backgroundURL, setBackgroundURL] = useState('https://hips.hearstapps.com/hmg-prod/images/dog-puppy-on-garden-royalty-free-image-1586966191.jpg?crop=0.752xw:1.00xh;0.175xw,0&resize=1200:*');
     const [backendURL, setBackendURL] = useState('http://127.0.0.1:5000');
     const [waitingID, setWaitingID] = useState('');
+    const [isDrawingMode, setIsDrawingMode] = useState(false);
     // const [drawingMode, setDrawingMode] = useState(true);
 
     // maintain a mapping from URL to objectID?
@@ -40,7 +40,7 @@ const App = () => {
             width: 800,
             //backgroundImage: backgroundURL,
             backgroundImage:'https://hips.hearstapps.com/hmg-prod/images/dog-puppy-on-garden-royalty-free-image-1586966191.jpg?crop=0.752xw:1.00xh;0.175xw,0&resize=1200:*',
-            isDrawingMode: false
+            isDrawingMode: isDrawingMode
         })
     )
 
@@ -78,6 +78,7 @@ const App = () => {
 
     const toggleDrawingMode = () => {
       canvas.isDrawingMode = !canvas.isDrawingMode;
+      setIsDrawingMode(canvas.isDrawingMode);
       canvas.freeDrawingBrush.width = 20;
       canvas.freeDrawingBrush.color = "rgba(255,0,0,.5)";
     }
@@ -145,7 +146,7 @@ const App = () => {
 
       try {
         const response = await client.post("/in_fill", data);
-        console.log(response.data);
+        console.log("got a response!", response.data);
         setWaitingID(response.data.id);
       } catch (err) {
         console.error("Error posting data:", err);
@@ -185,7 +186,7 @@ const App = () => {
        <br/><br/>
        <button onClick={() => getPositions()}>Get Positions</button>
        <button onClick={() => postData()}>Post Data</button>
-       <button onClick={() => toggleDrawingMode()}>Toggle Drawing Mode</button>
+       <button onClick={() => toggleDrawingMode()}>Toggle Drawing Mode {isDrawingMode ? "(on)" : "(off)"}</button>
        {/* <button onClick={() => dumpPath()}>Dump Path</button> */}
        <canvas id="canvas" />
       </div>
