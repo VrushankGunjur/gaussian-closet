@@ -27,14 +27,14 @@ def sample_path(path):
             points.append((point.real, point.imag))
     return points
 
-def svg_to_mask(svg_str, shape):
+def svg_to_mask(svg_str, shape, name="mask"):
     svg = svgstr2paths(svg_str)
     path = svg[0][0]
     image = Image.new("1", shape, 0)
     draw = ImageDraw.Draw(image)
     points = sample_path(path)
     draw.polygon(points, outline=1, fill=1)
-    image.save("./backend/imgs/rasterized_path.png")
+    #image.save("./backend/imgs/{}.png".format(name))
     return image
 
 @app.route("/")
@@ -50,10 +50,11 @@ def in_fill():
     print("Recieved this packet:", content)
 
     bg = Image.open(BytesIO(requests.get(content["bg_image_url"]).content))
-    fg = Image.open(BytesIO(requests.get(content["fg_image_urls"][0]).content)) 
-    mask = svg_to_mask(content['paths'][0], bg.size)
+    fg = Image.open(BytesIO(requests.get(content["fg_image_url"]).content)) 
+    bg_mask = svg_to_mask(content['bg_path'], bg.size, "bg_mask")
+    fg_mask = svg_to_mask(content['fg_path'], fg.size, "fg_mask")
 
-    task = ImagePipelineTask((content["bg_height"], content["bg_width"]), bg, fg, (content["fg_image_coords"][0]["tl"]["y"], content["fg_image_coords"][0]["tl"]["x"]), mask)
+    # task = ImagePipelineTask((content["bg_height"], content["bg_width"]), bg, fg, (content["fg_image_coords"][0]["tl"]["y"], content["fg_image_coords"][0]["tl"]["x"]), mask)
 
     id = uuid.uuid1()
 
