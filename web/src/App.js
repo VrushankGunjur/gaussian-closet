@@ -67,6 +67,10 @@ const App = () => {
     }
     
     const postData = async () => {
+      if (typeof c1 == "undefined" || typeof c2 == "undefined") {
+        return;
+      }
+
       console.log("Sending post request to backend");
       const client = axios.create({
         baseURL: backendURL + "/api",
@@ -78,30 +82,47 @@ const App = () => {
 
       let urls = [];
       let coords = [];
-      let paths = [];
+      let paths1 = [];
+      let paths2 = [];
 
       c1.getObjects().forEach(function(object) {
         if ("path" in object) {
-          paths.push(object.toSVG());
+          paths1.push(object.toSVG());
         } else {
           urls.push(object._element.currentSrc);
           coords.push(object.lineCoords)
         }
-      }); 
+      });
 
-      if (urls.length == 0 || paths.length == 0) {
-        console.log("No foreground image or masks supplied.");
-        return;
-      }
+      c2.getObjects().forEach(function(object) {
+        if ("path" in object) {
+          paths2.push(object.toSVG());
+        } else {
+          urls.push(object._element.currentSrc);
+          coords.push(object.lineCoords)
+        }
+      });
+
+      // if (urls.length == 0 || paths.length == 0) {
+      //   console.log("No foreground image or masks supplied.");
+      //   return;
+      // }
+
+      // let data = {
+      //   bg_image_url: c1.backgroundImage._element.src,
+      //   bg_height: c1.height,
+      //   bg_width: c1.width,
+      //   fg_image_urls: urls,
+      //   fg_image_coords: coords,
+      //   paths: paths
+      // };
 
       let data = {
         bg_image_url: c1.backgroundImage._element.src,
-        bg_height: c1.height,
-        bg_width: c1.width,
-        fg_image_urls: urls,
-        fg_image_coords: coords,
-        paths: paths
-      };
+        fg_image_url: c2.backgroundImage._element.src,
+        bg_path: paths1[0],
+        fg_path: paths2[0]
+      }
 
       console.log(data)
 
@@ -117,6 +138,7 @@ const App = () => {
 
     return(
       <div class="container">
+        <p>The only buttons you'll ever need</p>
         <button onClick={() => postData()}>Post Data</button>
         <button onClick={() => getPositions()}>Get All Positions</button>
         <SegmentCanvas cid={"bg"} updateCanvas={updateC1}/>
