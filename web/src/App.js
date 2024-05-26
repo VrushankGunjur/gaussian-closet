@@ -10,7 +10,9 @@ const App = () => {
     const [backendURL, setBackendURL] = useState('http://127.0.0.1:5000');
     const [outputImg, setOutputImg] = useState('');
     const [outputImgPresent, setOutputImgPresent] = useState(false);
+    const [segmentTarget, setSegmentTarget] = useState(''); // for auto-segmentation
 
+    // canvas 1 is the background image, canvas 2 is the foreground image
     let c1, c2;
     
     const updateC1 = (input) => {
@@ -133,6 +135,11 @@ const App = () => {
 	<input type="text" value={backendURL} onChange={e => setBackendURL(e.target.value)}></input>
         <button onClick={() => postData()}>Post Data</button>
         <button onClick={() => getPositions()}>Get All Positions</button>
+        <input 
+              type="text" 
+              value={segmentTarget} 
+              onChange={ e => setSegmentTarget(e.target.value)} 
+        />
         <div>
           {outputImgPresent ? (<div><img src={outputImg}/></div>) : (<div></div>)}
         </div>
