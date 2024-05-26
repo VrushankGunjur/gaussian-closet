@@ -64,7 +64,7 @@ def in_fill():
     base64img = None
 
     with open(f"./imgs/{id}.jpg", "rb") as image_file:
-        base64img = base64.base64encode(image_file.read()).decode("utf-8")
+        base64img = base64.b64encode(image_file.read()).decode("utf-8")
 
     return { "id": id, "image": base64img }
 

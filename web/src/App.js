@@ -119,6 +119,7 @@ const App = () => {
         setOutputImg(`data:image/jpeg;base64,${response.data.image}`);
 
         console.log("got a response!", response.data);
+	setOutputImgPresent(true);
         setWaitingID(response.data.id);
       } catch (err) {
         console.error("Error posting data:", err);
