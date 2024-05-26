@@ -8,9 +8,14 @@ from PIL import Image, ImageDraw
 from io import BytesIO
 from image_pipeline import ImagePipelineTask
 from svgpathtools import Path, parse_path, svgstr2paths
+import numpy as np
+
+from run_inference import inference_single_image
 
 # from redis import Redis
 # from rq import Queue
+
+print("running")
 
 # r = Redis()
 # q = Queue(connection=r)
@@ -54,6 +59,11 @@ def in_fill():
     bg_mask = svg_to_mask(content['bg_path'], bg.size, "bg_mask")
     fg_mask = svg_to_mask(content['fg_path'], fg.size, "fg_mask")
 
+    out = inference_single_image(np.array(fg, dtype='uint8'), np.array(fg_mask, dtype='uint8'), np.array(bg, dtype='uint8'), np.array(bg_mask, dtype='uint8'))
+
+    out_ = Image.fromarray(out)
+    out_.save("hello.jpg")
+
     # task = ImagePipelineTask((content["bg_height"], content["bg_width"]), bg, fg, (content["fg_image_coords"][0]["tl"]["y"], content["fg_image_coords"][0]["tl"]["x"]), mask)
 
     id = uuid.uuid1()
@@ -67,3 +77,4 @@ def serve_in_fill(id):
     # get the appropriate image data
     return { "done": done }
 
+app.run(port=5000, host="0.0.0.0")
