@@ -8,6 +8,8 @@ import axios from 'axios';
 const App = () => {
     const [waitingID, setWaitingID] = useState('');
     const [backendURL, setBackendURL] = useState('http://127.0.0.1:5000');
+    const [outputImg, setOutputImg] = useState('');
+    const [outputImgPresent, setOutputImgPresent] = useState(false);
 
     let c1, c2;
     
@@ -103,20 +105,6 @@ const App = () => {
         }
       });
 
-      // if (urls.length == 0 || paths.length == 0) {
-      //   console.log("No foreground image or masks supplied.");
-      //   return;
-      // }
-
-      // let data = {
-      //   bg_image_url: c1.backgroundImage._element.src,
-      //   bg_height: c1.height,
-      //   bg_width: c1.width,
-      //   fg_image_urls: urls,
-      //   fg_image_coords: coords,
-      //   paths: paths
-      // };
-
       let data = {
         bg_image_url: c1.backgroundImage._element.src,
         fg_image_url: c2.backgroundImage._element.src,
@@ -127,7 +115,9 @@ const App = () => {
       console.log(data)
 
       try {
-        const response = await client.post("/in_fill", data);
+        const response = await client.post("/in_fill", data);        
+        setOutputImg(`data:image/jpeg;base64,${response.data.image}`);
+
         console.log("got a response!", response.data);
         setWaitingID(response.data.id);
       } catch (err) {
@@ -142,6 +132,9 @@ const App = () => {
 	<input type="text" value={backendURL} onChange={e => setBackendURL(e.target.value)}></input>
         <button onClick={() => postData()}>Post Data</button>
         <button onClick={() => getPositions()}>Get All Positions</button>
+        <div>
+          {outputImgPresent ? (<div><img src={outputImg}/></div>) : (<div></div>)}
+        </div>
         <SegmentCanvas cid={"bg"} updateCanvas={updateC1}/>
         <SegmentCanvas cid={"fg"} updateCanvas={updateC2}/>
       </div>

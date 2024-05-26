@@ -6,7 +6,7 @@ import uuid
 from flask_cors import CORS, cross_origin
 from PIL import Image, ImageDraw
 from io import BytesIO
-from image_pipeline import ImagePipelineTask
+from image_pipeline import AnyDoorTask
 from svgpathtools import Path, parse_path, svgstr2paths
 import numpy as np
 
@@ -14,8 +14,6 @@ from run_inference import inference_single_image
 
 # from redis import Redis
 # from rq import Queue
-
-print("running")
 
 # r = Redis()
 # q = Queue(connection=r)
@@ -39,7 +37,6 @@ def svg_to_mask(svg_str, shape, name="mask"):
     draw = ImageDraw.Draw(image)
     points = sample_path(path)
     draw.polygon(points, outline=1, fill=1)
-    #image.save("./backend/imgs/{}.png".format(name))
     return image
 
 @app.route("/")
@@ -52,29 +49,29 @@ def index():
 def in_fill():
     content = request.get_json()
 
-    print("Recieved this packet:", content)
-
     bg = Image.open(BytesIO(requests.get(content["bg_image_url"]).content))
     fg = Image.open(BytesIO(requests.get(content["fg_image_url"]).content)) 
     bg_mask = svg_to_mask(content['bg_path'], bg.size, "bg_mask")
     fg_mask = svg_to_mask(content['fg_path'], fg.size, "fg_mask")
 
-    out = inference_single_image(np.array(fg, dtype='uint8'), np.array(fg_mask, dtype='uint8'), np.array(bg, dtype='uint8'), np.array(bg_mask, dtype='uint8'))
-
-    out_ = Image.fromarray(out)
-    out_.save("hello.jpg")
-
-    # task = ImagePipelineTask((content["bg_height"], content["bg_width"]), bg, fg, (content["fg_image_coords"][0]["tl"]["y"], content["fg_image_coords"][0]["tl"]["x"]), mask)
+    task = AnyDoorTask(bg, bg_mask, fg, fg_mask)
 
     id = uuid.uuid1()
 
-    return { "id": id }
+    out = Image.fromarray(task.run())
+    out.save(f"./imgs/{id}.jpg")
+
+    base64img = None
+
+    with open(f"./imgs/{id}.jpg", "rb") as image_file:
+        base64img = base64.base64encode(image_file.read()).decode("utf-8")
+
+    return { "id": id, "image": base64img }
 
 @app.route("/api/in_fill/<id>")
 @cross_origin()
 def serve_in_fill(id):
     done = False
-    # get the appropriate image data
     return { "done": done }
 
 app.run(port=5000, host="0.0.0.0")
