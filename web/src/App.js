@@ -139,6 +139,7 @@ const App = () => {
     return(
       <div class="container">
         <p>The only buttons you'll ever need</p>
+	<input type="text" value={backendURL} onChange={e => setBackendURL(e.target.value)}></input>
         <button onClick={() => postData()}>Post Data</button>
         <button onClick={() => getPositions()}>Get All Positions</button>
         <SegmentCanvas cid={"bg"} updateCanvas={updateC1}/>
