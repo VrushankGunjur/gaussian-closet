@@ -72,7 +72,7 @@ def in_fill():
 
     if (content["segment_type"] == 'auto'):
 
-        from backend_segmenter.auto_segmenter import AutoSegmenter
+        from auto_segmenter import AutoSegmenter
 
         seg = AutoSegmenter()
 
