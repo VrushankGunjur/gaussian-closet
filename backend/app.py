@@ -58,11 +58,11 @@ def in_fill():
     bg_mask, fg_mask = None, None
 
     if (content["segment_type"] == 'auto'):
-        r = requests.post("http://35.203.64.204:5000/api/segment", json={ "bg": pickle.dumps(bg), "fg": pickle.dumps(fg), "segment_target":content["segment_target"] })
+        r = requests.post("http://35.203.64.204:5000/api/segment", json={ "bg": bg, "fg": fg, "segment_target":content["segment_target"] })
 
         c = r.get_json()
-        bg_mask = pickle.loads(c["bg_mask"])
-        fg_mask = pickle.loads(c["fg_mask"])
+        bg_mask = c["bg_mask"]
+        fg_mask = c["fg_mask"]
     else:
         bg_mask = svg_to_mask(content['bg_path'], bg.size, "bg_mask")
         fg_mask = svg_to_mask(content['fg_path'], fg.size, "fg_mask")
