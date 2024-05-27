@@ -57,7 +57,7 @@ def in_fill():
 
     bg_mask, fg_mask = None, None
 
-    if (content["type"] == 'auto'):
+    if (content["segment_type"] == 'auto'):
         r = requests.post("http://35.203.64.204:5000/api/segment", json={ "bg": pickle.dumps(bg), "fg": pickle.dumps(fg), "segment_target":content["segment_target"] })
 
         c = r.get_json()
