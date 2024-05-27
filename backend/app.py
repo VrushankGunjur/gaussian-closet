@@ -10,6 +10,8 @@ from image_pipeline import AnyDoorTask
 from svgpathtools import Path, parse_path, svgstr2paths
 import numpy as np
 
+from auto_segmenter import AutoSegmenter
+
 from run_inference import inference_single_image
 
 # from redis import Redis
@@ -51,8 +53,15 @@ def in_fill():
 
     bg = Image.open(BytesIO(requests.get(content["bg_image_url"]).content))
     fg = Image.open(BytesIO(requests.get(content["fg_image_url"]).content)) 
-    bg_mask = svg_to_mask(content['bg_path'], bg.size, "bg_mask")
-    fg_mask = svg_to_mask(content['fg_path'], fg.size, "fg_mask")
+
+    bg_mask, fg_mask = None
+
+    if (content["type"] == 'auto'):
+        segmenter = AutoSegmenter()
+        bg_mask, fg_mask = segmenter.run_segmenter(bg, fg, [content['segment_target']])
+    else:
+        bg_mask = svg_to_mask(content['bg_path'], bg.size, "bg_mask")
+        fg_mask = svg_to_mask(content['fg_path'], fg.size, "fg_mask")
 
     task = AnyDoorTask(bg, bg_mask, fg, fg_mask)
 

@@ -107,11 +107,23 @@ const App = () => {
         }
       });
 
-      let data = {
-        bg_image_url: c1.backgroundImage._element.src,
-        fg_image_url: c2.backgroundImage._element.src,
-        bg_path: paths1[0],
-        fg_path: paths2[0]
+      let data = null;
+
+      if (segmentTarget != '') {
+        data = {
+          segment_type: 'auto',
+          segment_target: segmentTarget,
+          bg_image_url: c1.backgroundImage._element.src,
+          fg_image_url: c2.backgroundImage._element.src,
+        }
+      } else {
+        data = {
+          segment_type: 'user',
+          bg_image_url: c1.backgroundImage._element.src,
+          fg_image_url: c2.backgroundImage._element.src,
+          bg_path: paths1[0],
+          fg_path: paths2[0]
+        }
       }
 
       console.log(data)
@@ -135,7 +147,8 @@ const App = () => {
 	<input type="text" value={backendURL} onChange={e => setBackendURL(e.target.value)}></input>
         <button onClick={() => postData()}>Post Data</button>
         <button onClick={() => getPositions()}>Get All Positions</button>
-        <input 
+        <br></br>
+        <p>Segment Target: </p><input 
               type="text" 
               value={segmentTarget} 
               onChange={ e => setSegmentTarget(e.target.value)} 
