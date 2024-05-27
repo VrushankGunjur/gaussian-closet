@@ -10,7 +10,7 @@ from image_pipeline import AnyDoorTask
 from svgpathtools import Path, parse_path, svgstr2paths
 import numpy as np
 
-from auto_segmenter import AutoSegmenter
+# from backend_segmenter.auto_segmenter import AutoSegmenter
 
 from run_inference import inference_single_image
 
@@ -54,7 +54,7 @@ def in_fill():
     bg = Image.open(BytesIO(requests.get(content["bg_image_url"]).content))
     fg = Image.open(BytesIO(requests.get(content["fg_image_url"]).content)) 
 
-    bg_mask, fg_mask = None
+    bg_mask, fg_mask = None, None
 
     if (content["type"] == 'auto'):
         segmenter = AutoSegmenter()
