@@ -11,10 +11,11 @@ from svgpathtools import Path, parse_path, svgstr2paths
 import numpy as np
 import pickle
 import io
+import torch
 
 # from backend_segmenter.auto_segmenter import AutoSegmenter
 
-from run_inference import inference_single_image
+# from run_inference import inference_single_image
 
 # from redis import Redis
 # from rq import Queue
@@ -22,15 +23,14 @@ from run_inference import inference_single_image
 # r = Redis()
 # q = Queue(connection=r)
 
-def img_to_base64(img):
+def img_to_base64(img, name):
     buf = io.BytesIO()
-    img.save(buf, 'jpg')
-    buf.seek(0)
-    out = base64.b64encode(buf.read())
-    return str(out)
+    img.save(buf, 'JPEG')
+    b = buf.getvalue()
+    return (name, b, "image/jpeg")
 
 def base64_to_img(b64_str):
-    out = base64.b64decode(b64_str.encode())
+    out = base64.b64decode(b64_str)
     buf = io.BytesIO(out)
     return Image.open(buf)
 
@@ -71,16 +71,35 @@ def in_fill():
     bg_mask, fg_mask = None, None
 
     if (content["segment_type"] == 'auto'):
-        r = requests.post("http://35.203.64.204:5000/api/segment", json={ "bg": img_to_base64(bg), "fg": img_to_base64(fg), "segment_target":content["segment_target"] })
 
-        c = r.get_json()
-        bg_mask = base64_to_img(c["bg_mask"])
-        fg_mask = base64_to_img(c["fg_mask"])
+        from backend_segmenter.auto_segmenter import AutoSegmenter
+
+        seg = AutoSegmenter()
+
+        bg_mask, fg_mask = seg.run_segmenter(bg, fg, [content["segment_target"]])
+        
+        # files_bg = {
+        #      "img": img_to_base64(bg, "img.jpeg"),
+        # }
+        # files_fg = {
+        #      "img": img_to_base64(fg, "img.jpeg"),
+        # } 
+
+        # r_bg = requests.post("http://35.203.64.204:5000/api/segment", json={ "segment_target":content["segment_target"] }, files=files_bg)
+        # r_fg = requests.post("http://35.203.64.204:5000/api/segment", json={ "segment_target":content["segment_target"] }, files=files_fg)
+
+        # c_bg = r_bg.get_json()
+        # bg_mask = base64_to_img(c["bg_mask"])
+        # fg_mask = base64_to_img(c["fg_mask"])
     else:
         bg_mask = svg_to_mask(content['bg_path'], bg.size, "bg_mask")
         fg_mask = svg_to_mask(content['fg_path'], fg.size, "fg_mask")
 
-    task = AnyDoorTask(bg, bg_mask, fg, fg_mask)
+    torch.cuda.empty_cache()
+
+    from run_inference import inference_single_image
+
+    task = AnyDoorTask(bg, bg_mask, fg, fg_mask, inference_single_image)
 
     id = uuid.uuid1()
 
