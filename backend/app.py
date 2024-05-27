@@ -10,6 +10,7 @@ from image_pipeline import AnyDoorTask
 from svgpathtools import Path, parse_path, svgstr2paths
 import numpy as np
 import pickle
+import io
 
 # from backend_segmenter.auto_segmenter import AutoSegmenter
 
@@ -20,6 +21,18 @@ from run_inference import inference_single_image
 
 # r = Redis()
 # q = Queue(connection=r)
+
+def img_to_base64(img):
+    buf = io.BytesIO()
+    img.save(buf, 'jpg')
+    buf.seek(0)
+    out = base64.b64encode(buf.read())
+    return str(out)
+
+def base64_to_img(b64_str):
+    out = base64.b64decode(b64_str.encode())
+    buf = io.BytesIO(out)
+    return Image.open(buf)
 
 app = Flask(__name__, static_folder="../web/build", static_url_path="/")
 cors = CORS(app)
@@ -58,11 +71,11 @@ def in_fill():
     bg_mask, fg_mask = None, None
 
     if (content["segment_type"] == 'auto'):
-        r = requests.post("http://35.203.64.204:5000/api/segment", json={ "bg": bg, "fg": fg, "segment_target":content["segment_target"] })
+        r = requests.post("http://35.203.64.204:5000/api/segment", json={ "bg": img_to_base64(bg), "fg": img_to_base64(fg), "segment_target":content["segment_target"] })
 
         c = r.get_json()
-        bg_mask = c["bg_mask"]
-        fg_mask = c["fg_mask"]
+        bg_mask = base64_to_img(c["bg_mask"])
+        fg_mask = base64_to_img(c["fg_mask"])
     else:
         bg_mask = svg_to_mask(content['bg_path'], bg.size, "bg_mask")
         fg_mask = svg_to_mask(content['fg_path'], fg.size, "fg_mask")
