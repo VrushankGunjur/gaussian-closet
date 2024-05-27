@@ -8,6 +8,9 @@ class AnyDoorTask:
 
         self.fg_img = np.array(fg_img, dtype="uint8")
         self.fg_mask = np.array(fg_mask, dtype="uint8")
+
+        print(self.bg_img.shape, self.bg_mask.shape, self.fg_img.shape, self.fg_mask.shape)
+
         self.fn = fn
 
     def run(self):

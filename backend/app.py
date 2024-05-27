@@ -79,7 +79,11 @@ def in_fill():
 
         seg = AutoSegmenter()
 
-        bg_mask, fg_mask = seg.run_segmenter(bg, fg, [content["segment_target"]])
+        bg_masks, fg_masks = seg.run_segmenter(bg, fg, [content["segment_target"]])
+    
+        bg_mask = bg_masks[0][0]    # get the first mask in the list, which is (mask Img, mask label)
+        fg_mask = fg_masks[0][0]
+        print(bg_mask)
         
         # files_bg = {
         #      "img": img_to_base64(bg, "img.jpeg"),
@@ -106,16 +110,46 @@ def in_fill():
     print('inference')
     from run_inference import inference_single_image
 
-    task = AnyDoorTask(bg, bg_mask[0], fg, fg_mask[0], inference_single_image)
-
     id = uuid.uuid1()
 
+    fg_mask.save(f"./masks/fg_mask_{id}.jpg")
+    bg_mask.save(f"./masks/bg_mask_{id}.jpg")
+
+    task = AnyDoorTask(bg, bg_mask, fg, fg_mask, inference_single_image)
+
+    # out is the generated image
     out = Image.fromarray(task.run())
     out.save(f"./imgs/{id}.jpg")
+    # we want to replace the original image with the pixels in the generated
+    # image only where the masks align
+
+    # for x in range(len(bg_mask)):
+    #     for y in range(len(bg_mask[0])):
+    #         # might be y,x
+    #         out[x][y] = 
+
+    # elementwise multiply to get the addition
+
+    # before doing this, we want to make the bg_mask "fuzzy" by flipping
+    # boundary pixels to on position
+    out = np.multiply(out, np.stack([bg_mask, bg_mask, bg_mask], axis=2))
+
+    inverse_bg_mask = np.logical_not(bg_mask) # ~
+    inverse_bg_mask_ = Image.fromarray(inverse_bg_mask.astype(np.uint8)*255)
+    inverse_bg_mask_.save(f"./masks/inv_bg_mask_{id}.jpg")
+
+    bg = np.multiply(bg, np.stack([inverse_bg_mask, inverse_bg_mask, inverse_bg_mask], axis=2)) 
+
+    generation = bg + out
+
+    gen = Image.fromarray(generation)
+
+    gen.save(f"./generations/{id}.jpg")
+
 
     base64img = None
 
-    with open(f"./imgs/{id}.jpg", "rb") as image_file:
+    with open(f"./generations/{id}.jpg", "rb") as image_file:
         base64img = base64.b64encode(image_file.read()).decode("utf-8")
 
     return { "id": id, "image": base64img }

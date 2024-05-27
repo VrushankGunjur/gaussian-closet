@@ -225,7 +225,8 @@ class AutoSegmenter():
             polygon = self.mask_to_polygon(mask)
             # invert y and x coords in polygon
             polygon = [(y, x) for x, y in polygon]
-            bin_mask = polygon2mask(image_array.shape, polygon).astype(np.uint8) 
+            b_shape = (image_array.shape[0], image_array.shape[1])
+            bin_mask = polygon2mask(b_shape, polygon).astype(np.uint8) 
             img = Image.fromarray(bin_mask*255)
 
             # instead of saving to a file, we want to return the images -- 
