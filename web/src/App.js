@@ -11,25 +11,25 @@ const App = () => {
     const [outputImg, setOutputImg] = useState('');
     const [outputImgPresent, setOutputImgPresent] = useState(false);
     const [segmentTarget, setSegmentTarget] = useState(''); // for auto-segmentation
+    const [cBg, setCBg] = useState('');
+    const [cFg, setCFg] = useState('');
 
     // canvas 1 is the background image, canvas 2 is the foreground image
-    let c1, c2;
-    
-    const updateC1 = (input) => {
-      console.log("this is the parent. canvas here updated")
-      c1 = input; 
+
+    const updatecBg = (input) => {
+      setCBg(input);
     }
 
-    const updateC2 = (input) => {
-      c2 = input; 
+    const updatecFg = (input) => {
+      setCFg(input);
     }
 
     const getPositions = () => {
-      if (typeof c1 !== "undefined") {
-        console.log(c1);
-        console.log("c1 Size: ", c1.width, c1.height);
+      if (typeof cBg !== "undefined") {
+        console.log(cBg);
+        console.log("cBg Size: ", cBg.width, cBg.height);
 
-        c1.getObjects().forEach(function(object) {
+        cBg.getObjects().forEach(function(object) {
           // Object is bounding line
           if ("path" in object) {
             object.fill = 'red';
@@ -47,11 +47,11 @@ const App = () => {
         });
       }
 
-      if (typeof c2 !== "undefined") {
-        console.log(c2);
-        console.log("c2  Size: ", c2.width, c2.height);
+      if (typeof cFg !== "undefined") {
+        console.log(cFg);
+        console.log("cFg  Size: ", cFg.width, cFg.height);
 
-        c2.getObjects().forEach(function(object) {
+        cFg.getObjects().forEach(function(object) {
           // Object is bounding line
           if ("path" in object) {
             object.fill = 'red';
@@ -71,7 +71,9 @@ const App = () => {
     }
     
     const postData = async () => {
-      if (typeof c1 == "undefined" || typeof c2 == "undefined") {
+      console.log(cBg);
+      console.log(cFg);
+      if (typeof cBg == "undefined" || typeof cFg == "undefined") {
         return;
       }
 
@@ -89,7 +91,7 @@ const App = () => {
       let paths1 = [];
       let paths2 = [];
 
-      c1.getObjects().forEach(function(object) {
+      cBg.getObjects().forEach(function(object) {
         if ("path" in object) {
           paths1.push(object.toSVG());
         } else {
@@ -98,7 +100,7 @@ const App = () => {
         }
       });
 
-      c2.getObjects().forEach(function(object) {
+      cFg.getObjects().forEach(function(object) {
         if ("path" in object) {
           paths2.push(object.toSVG());
         } else {
@@ -113,14 +115,14 @@ const App = () => {
         data = {
           segment_type: 'auto',
           segment_target: segmentTarget,
-          bg_image_url: c1.backgroundImage._element.src,
-          fg_image_url: c2.backgroundImage._element.src,
+          bg_image_url: cBg.backgroundImage._element.src,
+          fg_image_url: cFg.backgroundImage._element.src,
         }
       } else {
         data = {
           segment_type: 'user',
-          bg_image_url: c1.backgroundImage._element.src,
-          fg_image_url: c2.backgroundImage._element.src,
+          bg_image_url: cBg.backgroundImage._element.src,
+          fg_image_url: cFg.backgroundImage._element.src,
           bg_path: paths1[0],
           fg_path: paths2[0]
         }
@@ -151,13 +153,13 @@ const App = () => {
         <p>Segment Target: </p><input 
               type="text" 
               value={segmentTarget} 
-              onChange={ e => setSegmentTarget(e.target.value)} 
+              onChange={ e => setSegmentTarget(e.target.value) } 
         />
         <div>
           {outputImgPresent ? (<div><img src={outputImg}/></div>) : (<div></div>)}
         </div>
-        <SegmentCanvas cid={"bg"} updateCanvas={updateC1}/>
-        <SegmentCanvas cid={"fg"} updateCanvas={updateC2}/>
+        <SegmentCanvas cid={"bg"} updateCanvas={updatecBg}/>
+        <SegmentCanvas cid={"fg"} updateCanvas={updatecFg}/>
       </div>
     );
   }

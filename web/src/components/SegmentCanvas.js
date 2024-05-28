@@ -44,7 +44,7 @@ const SegmentCanvas = (props) => {
         console.log(img.width, img.height);
         canvi.renderAll();
         setBackgroundURL('');        // reset the image URL
-        props.updateCanvas(canvas);
+        props.updateCanvas(canvi);
     }
 
 
@@ -58,7 +58,7 @@ const SegmentCanvas = (props) => {
           canvi.renderAll();
           setImgURL('');        // reset the image URL
         });
-        props.updateCanvas(canvas);
+        props.updateCanvas(canvi);
     }
 
     const toggleDrawingMode = () => {
