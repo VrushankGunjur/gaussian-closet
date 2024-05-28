@@ -60,12 +60,46 @@ def svg_to_mask(svg_str, shape, name="mask"):
 def index():
     return redirect("./index.html")
 
+@app.route("/api/segment", methods=["POST"])
+@cross_origin()
+def segment():
+    content = request.get_json()
+    
+    bg = Image.open(BytesIO(requests.get(content["bg_image_url"]).content))
+    fg = Image.open(BytesIO(requests.get(content["fg_image_url"]).content))
+
+    from auto_segmenter import AutoSegmenter
+    seg = AutoSegmenter()
+    bg_masks, fg_masks = seg.run_segmenter(bg, fg, [content["segment_target"]])
+    bg_mask = bg_masks[0][0]
+    fg_mask = fg_masks[0][0]
+
+    torch.cuda.empty_cache()
+
+    # send back the bg_mask and fg_mask as base64
+    bg_mask = Image.fromarray(bg_mask.astype(np.uint8)*255)
+    fg_mask = Image.fromarray(fg_mask.astype(np.uint8)*255)
+
+    #base64bg = bg_mask.tobytes()
+    buffered_bg = BytesIO()
+    bg_mask.save(buffered_bg, format="JPEG")
+    base64bg = base64.b64encode(buffered_bg.getvalue())
+
+    buffered_fg = BytesIO()
+    fg_mask.save(buffered_fg, format="JPEG")
+    base64fg = base64.b64encode(buffered_fg.getvalue())
+
+    # should we be decoding here?
+    return { "bg_mask": base64bg.decode("utf-8"), "fg_mask": base64fg.decode("utf-8") }
+
+
+
 @app.route("/api/in_fill", methods=["POST"])
 @cross_origin()
 def in_fill():
     content = request.get_json()
 
-    print('recieved request')
+    print('received request')
 
     bg = Image.open(BytesIO(requests.get(content["bg_image_url"]).content))
     fg = Image.open(BytesIO(requests.get(content["fg_image_url"]).content)) 
@@ -79,8 +113,12 @@ def in_fill():
 
         seg = AutoSegmenter()
 
-        bg_mask, fg_mask = seg.run_segmenter(bg, fg, [content["segment_target"]])
-        
+        bg_masks, fg_masks = seg.run_segmenter(bg, fg, [content["segment_target"]])
+    
+        bg_mask = bg_masks[0][0]    # get the first mask in the list, which is (mask Img, mask label)
+        fg_mask = fg_masks[0][0]
+        #print(bg_mask)
+    
         # files_bg = {
         #      "img": img_to_base64(bg, "img.jpeg"),
         # }
@@ -106,16 +144,65 @@ def in_fill():
     print('inference')
     from run_inference import inference_single_image
 
-    task = AnyDoorTask(bg, bg_mask[0], fg, fg_mask[0], inference_single_image)
-
     id = uuid.uuid1()
 
-    out = Image.fromarray(task.run())
-    out.save(f"./imgs/{id}.jpg")
+    Image.fromarray(fg_mask.astype(np.uint8)*255).save(f"./masks/fg_mask_{id}.jpg")
+    Image.fromarray(bg_mask.astype(np.uint8)*255).save(f"./masks/bg_mask_{id}.jpg")
+
+    task = AnyDoorTask(bg, bg_mask, fg, fg_mask, inference_single_image)
+
+    # out is the generated image
+    out_arr = task.run()
+    out = Image.fromarray(out_arr.astype(np.uint8))
+    out.save(f"./imgs/direct_from_model_{id}.jpg")
+    # we want to replace the original image with the pixels in the generated
+    # image only where the masks align
+
+    # for x in range(len(bg_mask)):
+    #     for y in range(len(bg_mask[0])):
+    #         # might be y,x
+    #         out[x][y] = 
+
+    # elementwise multiply to get the addition
+
+    # before doing this, we want to make the bg_mask "fuzzy" by flipping
+    # boundary pixels to on position
+    # take only the part of the generated image we wanted replaced in the original image
+    # 0 out all entries in the matrix that aren't in the mask
+
+    #out_masked_arr = np.multiply(out_arr, np.stack([bg_mask, bg_mask, bg_mask], axis=2))
+
+    bg_mask = bg_mask.astype(bool)
+    fg_mask = fg_mask.astype(bool)
+
+    # mask out all of the generation that we don't want
+    out_arr[~bg_mask] = 0
+    Image.fromarray(out_arr.astype(np.uint8)).save(f"./intermediates/masked_generation_{id}.jpg")
+
+    # inverse_bg_mask = np.logical_not(bg_mask) # ~
+    # inverse_bg_mask_ = Image.fromarray(inverse_bg_mask.astype(np.uint8)*255)
+    # inverse_bg_mask_.save(f"./masks/inv_bg_mask_{id}.jpg")
+
+    # mask out the part of the original image we want to replace
+    bg_arr = np.array(bg)
+    bg_arr[bg_mask] = 0
+    #bg = np.multiply(bg, np.stack([inverse_bg_mask, inverse_bg_mask, inverse_bg_mask], axis=2)) 
+
+    Image.fromarray(bg_arr.astype(np.uint8)).save(f"./intermediates/keep_from_og_{id}.jpg")
+
+
+    generation = bg_arr + out_arr
+
+    gen = Image.fromarray(generation.astype(np.uint8))
+
+    gen.save(f"./generations/{id}.jpg")
+
 
     base64img = None
 
-    with open(f"./imgs/{id}.jpg", "rb") as image_file:
+    print('clearing cache')
+    torch.cuda.empty_cache()
+    with open(f"./generations/{id}.jpg", "rb") as image_file:
         base64img = base64.b64encode(image_file.read()).decode("utf-8")
 
     return { "id": id, "image": base64img }

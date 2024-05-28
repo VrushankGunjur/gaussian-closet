@@ -225,16 +225,17 @@ class AutoSegmenter():
             polygon = self.mask_to_polygon(mask)
             # invert y and x coords in polygon
             polygon = [(y, x) for x, y in polygon]
-            bin_mask = polygon2mask(image_array.shape, polygon).astype(np.uint8) 
+            b_shape = (image_array.shape[0], image_array.shape[1])
+            bin_mask = polygon2mask(b_shape, polygon).astype(np.uint8) 
             img = Image.fromarray(bin_mask*255)
 
             # instead of saving to a file, we want to return the images -- 
             # also want to sort by confidence and only take the first result usually.
             img.save(f"{detection.label}-{i}.png")
 
-            og_img = Image.fromarray(image_array)
-            og_img.save(f"og_img.png")
-            masks.append((img, detection.label))
+            #og_img = Image.fromarray(image_array)
+            #og_img.save(f"og_img.png")
+            masks.append((bin_mask, detection.label))
         
         # returns [(mask1, mask1label), (mask2, mask2label),..., (maskn, masknlabel)]
         return masks

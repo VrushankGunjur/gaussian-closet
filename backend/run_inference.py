@@ -189,11 +189,15 @@ def inference_single_image(ref_image, ref_mask, tar_image, tar_mask, guidance_sc
     # ====
     num_samples = 1 #gr.Slider(label="Images", minimum=1, maximum=12, value=1, step=1)
     image_resolution = 512  #gr.Slider(label="Image Resolution", minimum=256, maximum=768, value=512, step=64)
+
+    # ADJUST PARAMS (@VRUSHANK)
+
+    #STRENGTH SHOULD BE ~2 WITH STRONG MASKS
     strength = 1  #gr.Slider(label="Control Strength", minimum=0.0, maximum=2.0, value=1.0, step=0.01)
     guess_mode = False #gr.Checkbox(label='Guess Mode', value=False)
     #detect_resolution = 512  #gr.Slider(label="Segmentation Resolution", minimum=128, maximum=1024, value=512, step=1)
-    ddim_steps = 50 #gr.Slider(label="Steps", minimum=1, maximum=100, value=20, step=1)
-    scale = guidance_scale  #gr.Slider(label="Guidance Scale", minimum=0.1, maximum=30.0, value=9.0, step=0.1)
+    ddim_steps = 20 #gr.Slider(label="Steps", minimum=1, maximum=100, value=20, step=1)
+    scale = 4  #gr.Slider(label="Guidance Scale", minimum=0.1, maximum=30.0, value=9.0, step=0.1)
     seed = -1  #gr.Slider(label="Seed", minimum=-1, maximum=2147483647, step=1, randomize=True)
     eta = 0.0 #gr.Number(label="eta (DDIM)", value=0.0)
 

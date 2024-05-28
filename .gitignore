@@ -29,4 +29,3 @@ web/yarn-error.log*
 
 # backend
 *.pyc
-backend/imgs
