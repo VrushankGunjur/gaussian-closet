@@ -193,12 +193,12 @@ def inference_single_image(ref_image, ref_mask, tar_image, tar_mask, guidance_sc
     # ADJUST PARAMS (@VRUSHANK)
 
     #STRENGTH SHOULD BE ~2 WITH STRONG MASKS
-    strength = 1.2  #gr.Slider(label="Control Strength", minimum=0.0, maximum=2.0, value=1.0, step=0.01)
+    strength = 1  #gr.Slider(label="Control Strength", minimum=0.0, maximum=2.0, value=1.0, step=0.01)
     guess_mode = False #gr.Checkbox(label='Guess Mode', value=False)
     #detect_resolution = 512  #gr.Slider(label="Segmentation Resolution", minimum=128, maximum=1024, value=512, step=1)
-    ddim_steps = 23 #gr.Slider(label="Steps", minimum=1, maximum=100, value=20, step=1)
+    ddim_steps = 20 #gr.Slider(label="Steps", minimum=1, maximum=100, value=20, step=1)
     scale = 4  #gr.Slider(label="Guidance Scale", minimum=0.1, maximum=30.0, value=9.0, step=0.1)
-    seed = 1  #gr.Slider(label="Seed", minimum=-1, maximum=2147483647, step=1, randomize=True)
+    seed = -1  #gr.Slider(label="Seed", minimum=-1, maximum=2147483647, step=1, randomize=True)
     eta = 0.0 #gr.Number(label="eta (DDIM)", value=0.0)
 
     model.control_scales = [strength * (0.825 ** float(12 - i)) for i in range(13)] if guess_mode else ([strength] * 13)  # Magic number. IDK why. Perhaps because 0.825**12<0.01 but 0.826**12>0.01
