@@ -112,14 +112,15 @@ def in_fill():
 
     id = uuid.uuid1()
 
-    fg_mask.save(f"./masks/fg_mask_{id}.jpg")
-    bg_mask.save(f"./masks/bg_mask_{id}.jpg")
+    Image.fromarray(fg_mask.astype(np.uint8)*255).save(f"./masks/fg_mask_{id}.jpg")
+    Image.fromarray(bg_mask.astype(np.uint8)*255).save(f"./masks/bg_mask_{id}.jpg")
 
     task = AnyDoorTask(bg, bg_mask, fg, fg_mask, inference_single_image)
 
     # out is the generated image
-    out = Image.fromarray(task.run())
-    out.save(f"./imgs/{id}.jpg")
+    out_arr = task.run()
+    out = Image.fromarray(out_arr.astype(np.uint8))
+    out.save(f"./imgs/direct_from_model_{id}.jpg")
     # we want to replace the original image with the pixels in the generated
     # image only where the masks align
 
@@ -132,23 +133,41 @@ def in_fill():
 
     # before doing this, we want to make the bg_mask "fuzzy" by flipping
     # boundary pixels to on position
-    out = np.multiply(out, np.stack([bg_mask, bg_mask, bg_mask], axis=2))
+    # take only the part of the generated image we wanted replaced in the original image
+    # 0 out all entries in the matrix that aren't in the mask
 
-    inverse_bg_mask = np.logical_not(bg_mask) # ~
-    inverse_bg_mask_ = Image.fromarray(inverse_bg_mask.astype(np.uint8)*255)
-    inverse_bg_mask_.save(f"./masks/inv_bg_mask_{id}.jpg")
+    #out_masked_arr = np.multiply(out_arr, np.stack([bg_mask, bg_mask, bg_mask], axis=2))
 
-    bg = np.multiply(bg, np.stack([inverse_bg_mask, inverse_bg_mask, inverse_bg_mask], axis=2)) 
+    bg_mask = bg_mask.astype(bool)
+    fg_mask = fg_mask.astype(bool)
 
-    generation = bg + out
+    # mask out all of the generation that we don't want
+    out_arr[~bg_mask] = 0
+    Image.fromarray(out_arr.astype(np.uint8)).save(f"./intermediates/masked_generation_{id}.jpg")
 
-    gen = Image.fromarray(generation)
+    # inverse_bg_mask = np.logical_not(bg_mask) # ~
+    # inverse_bg_mask_ = Image.fromarray(inverse_bg_mask.astype(np.uint8)*255)
+    # inverse_bg_mask_.save(f"./masks/inv_bg_mask_{id}.jpg")
+
+    # mask out the part of the original image we want to replace
+    bg_arr = np.array(bg)
+    bg_arr[bg_mask] = 0
+    #bg = np.multiply(bg, np.stack([inverse_bg_mask, inverse_bg_mask, inverse_bg_mask], axis=2)) 
+
+    Image.fromarray(bg_arr.astype(np.uint8)).save(f"./intermediates/keep_from_og_{id}.jpg")
+
+
+    generation = bg_arr + out_arr
+
+    gen = Image.fromarray(generation.astype(np.uint8))
 
     gen.save(f"./generations/{id}.jpg")
 
 
     base64img = None
 
+    print('clearing cache')
+    torch.cuda.empty_cache()
     with open(f"./generations/{id}.jpg", "rb") as image_file:
         base64img = base64.b64encode(image_file.read()).decode("utf-8")
 

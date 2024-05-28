@@ -233,9 +233,9 @@ class AutoSegmenter():
             # also want to sort by confidence and only take the first result usually.
             img.save(f"{detection.label}-{i}.png")
 
-            og_img = Image.fromarray(image_array)
-            og_img.save(f"og_img.png")
-            masks.append((img, detection.label))
+            #og_img = Image.fromarray(image_array)
+            #og_img.save(f"og_img.png")
+            masks.append((bin_mask, detection.label))
         
         # returns [(mask1, mask1label), (mask2, mask2label),..., (maskn, masknlabel)]
         return masks
