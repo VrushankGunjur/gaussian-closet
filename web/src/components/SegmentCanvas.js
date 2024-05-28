@@ -7,7 +7,7 @@ import axios from 'axios';
 const SegmentCanvas = (props) => {
     const [canvas, setCanvas] = useState('');
     const [imgURL, setImgURL] = useState('https://m.media-amazon.com/images/I/81XW83q04fL.jpg');
-    const [backgroundURL, setBackgroundURL] = useState('https://hips.hearstapps.com/hmg-prod/images/dog-puppy-on-garden-royalty-free-image-1586966191.jpg?crop=0.752xw:1.00xh;0.175xw,0&resize=1200:*');
+    const [backgroundURL, setBackgroundURL] = useState('https://slimages.macysassets.com/is/image/MCY/products/9/optimized/26977799_fpx.tif?op_sharpen=1&wid=700&hei=855&fit=fit,1&fmt=webp');
     const [isDrawingMode, setIsDrawingMode] = useState(false);
     const canvasID = `canvas-${props.cid}`
 
@@ -22,7 +22,7 @@ const SegmentCanvas = (props) => {
             height: 800,
             width: 800,
             //backgroundImage: backgroundURL,
-            backgroundImage:'https://hips.hearstapps.com/hmg-prod/images/dog-puppy-on-garden-royalty-free-image-1586966191.jpg?crop=0.752xw:1.00xh;0.175xw,0&resize=1200:*',
+            backgroundImage:'https://slimages.macysassets.com/is/image/MCY/products/9/optimized/26977799_fpx.tif?op_sharpen=1&wid=700&hei=855&fit=fit,1&fmt=webp',
             isDrawingMode: isDrawingMode
         })
     )

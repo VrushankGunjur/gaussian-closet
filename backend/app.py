@@ -60,12 +60,46 @@ def svg_to_mask(svg_str, shape, name="mask"):
 def index():
     return redirect("./index.html")
 
+@app.route("/api/segment", methods=["POST"])
+@cross_origin()
+def segment():
+    content = request.get_json()
+    
+    bg = Image.open(BytesIO(requests.get(content["bg_image_url"]).content))
+    fg = Image.open(BytesIO(requests.get(content["fg_image_url"]).content))
+
+    from auto_segmenter import AutoSegmenter
+    seg = AutoSegmenter()
+    bg_masks, fg_masks = seg.run_segmenter(bg, fg, [content["segment_target"]])
+    bg_mask = bg_masks[0][0]
+    fg_mask = fg_masks[0][0]
+
+    torch.cuda.empty_cache()
+
+    # send back the bg_mask and fg_mask as base64
+    bg_mask = Image.fromarray(bg_mask.astype(np.uint8)*255)
+    fg_mask = Image.fromarray(fg_mask.astype(np.uint8)*255)
+
+    #base64bg = bg_mask.tobytes()
+    buffered_bg = BytesIO()
+    bg_mask.save(buffered_bg, format="JPEG")
+    base64bg = base64.b64encode(buffered_bg.getvalue())
+
+    buffered_fg = BytesIO()
+    fg_mask.save(buffered_fg, format="JPEG")
+    base64fg = base64.b64encode(buffered_fg.getvalue())
+
+    # should we be decoding here?
+    return { "bg_mask": base64bg.decode("utf-8"), "fg_mask": base64fg.decode("utf-8") }
+
+
+
 @app.route("/api/in_fill", methods=["POST"])
 @cross_origin()
 def in_fill():
     content = request.get_json()
 
-    print('recieved request')
+    print('received request')
 
     bg = Image.open(BytesIO(requests.get(content["bg_image_url"]).content))
     fg = Image.open(BytesIO(requests.get(content["fg_image_url"]).content)) 
@@ -83,8 +117,8 @@ def in_fill():
     
         bg_mask = bg_masks[0][0]    # get the first mask in the list, which is (mask Img, mask label)
         fg_mask = fg_masks[0][0]
-        print(bg_mask)
-        
+        #print(bg_mask)
+    
         # files_bg = {
         #      "img": img_to_base64(bg, "img.jpeg"),
         # }
