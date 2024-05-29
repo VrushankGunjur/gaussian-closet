@@ -3,17 +3,22 @@ import SegmentCanvas from './components/SegmentCanvas.js';
 import React, { useState, useEffect } from 'react';
 import { fabric } from 'fabric';
 import axios from 'axios';
+import Library from './components/Library.js';
+
 
 // https://aprilescobar.medium.com/part-3-fabric-js-on-react-fabric-image-fromurl-4185e0d945d3
 
 const App = () => {
     const [waitingID, setWaitingID] = useState('');
-    const [backendURL, setBackendURL] = useState('http://35.203.124.234:5000');
+    const [backendURL, setBackendURL] = useState('http://34.118.172.122:5000');
     const [outputImg, setOutputImg] = useState('');
     const [outputImgPresent, setOutputImgPresent] = useState(false);
-    const [segmentTarget, setSegmentTarget] = useState(''); // for auto-segmentation
+    const [segmentTarget, setSegmentTarget] = useState('');
     const [cBg, setCBg] = useState('');
     const [cFg, setCFg] = useState('');
+    const [clothingItems, setClothingItems] = useState([]);
+
+    
 
     // canvas 1 is the background image, canvas 2 is the foreground image
 
@@ -24,6 +29,10 @@ const App = () => {
     const updatecFg = (input) => {
       setCFg(input);
     }
+
+    const addClothingItem = (item) => {
+      setClothingItems([...clothingItems, item]);
+  }
 
     const getPositions = () => {
       if (typeof cBg !== "undefined") {
@@ -124,6 +133,8 @@ const App = () => {
         }
     }
 
+    
+
     const postDataFull = async () => {
       console.log(cBg);
       console.log(cFg);
@@ -197,24 +208,26 @@ const App = () => {
       }
     }
 
-    return(
-      <div class="container">
-        <p>The only buttons you'll ever need</p>
-	<input type="text" value={backendURL} onChange={e => setBackendURL(e.target.value)}></input>
-        <button onClick={() => postDataFull()}>Post Data</button>
-        <button onClick={() => getPositions()}>Get All Positions</button>
-        <br></br>
-        <p>Segment Target: </p><input 
+    return (
+      <div className="container">
+          <p>The only buttons you'll ever need</p>
+          <input type="text" value={backendURL} onChange={e => setBackendURL(e.target.value)} />
+          <button onClick={() => postDataFull()}>Post Data</button>
+          <button onClick={() => getPositions()}>Get All Positions</button>
+          <br />
+          <p>Segment Target: </p>
+          <input 
               type="text" 
               value={segmentTarget} 
-              onChange={ e => setSegmentTarget(e.target.value) } 
-        />
-        <div>
-          {outputImgPresent ? (<div><img src={outputImg}/></div>) : (<div></div>)}
-        </div>
-        <SegmentCanvas cid={"bg"} updateCanvas={updatecBg}/>
-        <SegmentCanvas cid={"fg"} updateCanvas={updatecFg}/>
+              onChange={e => setSegmentTarget(e.target.value)} 
+          />
+          <div>
+              {outputImgPresent ? (<div><img src={outputImg} alt="Output" /></div>) : (<div></div>)}
+          </div>
+          <Library clothingItems={clothingItems} addClothingItem={addClothingItem} />
+          <SegmentCanvas cid={"bg"} updateCanvas={updatecBg} />
+          <SegmentCanvas cid={"fg"} updateCanvas={updatecFg} />
       </div>
-    );
+  );
   }
 export default App;
