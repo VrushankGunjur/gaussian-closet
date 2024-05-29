@@ -1,7 +1,8 @@
 import torch
 import torch.nn.functional as F
 import numpy as np
-from PIL import Image
+from svgpathtools import Path, parse_path, svgstr2paths
+from PIL import Image, ImageDraw
 
 attn_maps = {}
 def hook_fn(name):
@@ -43,6 +44,24 @@ def upscale(attn_map, target_size):
 
     attn_map = torch.softmax(attn_map, dim=0)
     return attn_map
+
+def sample_path(path):
+    points = []
+    for segment in path:
+        for t in [i / 1000 for i in range(1000 + 1)]:
+            point = segment.point(t)
+            points.append((point.real, point.imag))
+    return points
+
+def svg_to_mask(svg_str, shape, name="mask"):
+    svg = svgstr2paths(svg_str)
+    path = svg[0][0]
+    image = Image.new("1", shape, 0)
+    draw = ImageDraw.Draw(image)
+    points = sample_path(path)
+    draw.polygon(points, outline=1, fill=1)
+    return image
+
 def get_net_attn_map(image_size, batch_size=2, instance_or_negative=False, detach=True):
 
     idx = 0 if instance_or_negative else 1
