@@ -55,6 +55,14 @@ def svg_to_mask(svg_str, shape, name="mask"):
     draw.polygon(points, outline=1, fill=1)
     return image
 
+# Takes in PIL.Image type
+# Assumes are of bool type
+def union_mask(a, b):
+    a_ = np.array(a)
+    b_ = np.array(b)
+    out = np.logical_or(a_, b_)
+    return Image.fromarray(out)
+
 @app.route("/")
 @cross_origin()
 def index():
@@ -93,7 +101,6 @@ def segment():
     return { "bg_mask": base64bg.decode("utf-8"), "fg_mask": base64fg.decode("utf-8") }
 
 
-
 @app.route("/api/in_fill", methods=["POST"])
 @cross_origin()
 def in_fill():
@@ -106,7 +113,7 @@ def in_fill():
 
     bg_mask, fg_mask = None, None
 
-    if (content["segment_type"] == 'auto'):
+    if (content["segment_type"] == "auto" or content["segment_type"] == "partial"):
         print('segmenting')
 
         from auto_segmenter import AutoSegmenter
@@ -117,6 +124,9 @@ def in_fill():
     
         bg_mask = bg_masks[0][0]    # get the first mask in the list, which is (mask Img, mask label)
         fg_mask = fg_masks[0][0]
+
+        bg_mask = bg_mask.astype(bool)
+        fg_mask = fg_mask.astype(bool)
         #print(bg_mask)
     
         # files_bg = {
@@ -136,6 +146,18 @@ def in_fill():
         bg_mask = svg_to_mask(content['bg_path'], bg.size, "bg_mask")
         fg_mask = svg_to_mask(content['fg_path'], fg.size, "fg_mask")
 
+    if (content["segment_type"] == "partial"):
+        print("partial detected")
+
+        if (content['bg_path'] != "NONE"): 
+            bg_mask_user = np.array(svg_to_mask(content['bg_path'], bg.size, "bg_mask"))
+            bg_mask = np.logical_or(bg_mask, bg_mask_user)
+            # bg_mask = union_mask(bg_mask, bg_mask_user)
+        
+        if (content['fg_path'] != "NONE"):  
+            fg_mask_user = np.array(svg_to_mask(content['fg_path'], fg.size, "fg_mask"))
+            fg_mask = np.logical_or(fg_mask, fg_mask_user)
+            # fg_mask = union_mask(fg_mask, fg_mask_user)
 
     print('clearing cache')
     torch.cuda.empty_cache()
@@ -171,9 +193,6 @@ def in_fill():
     # 0 out all entries in the matrix that aren't in the mask
 
     #out_masked_arr = np.multiply(out_arr, np.stack([bg_mask, bg_mask, bg_mask], axis=2))
-
-    bg_mask = bg_mask.astype(bool)
-    fg_mask = fg_mask.astype(bool)
 
     # mask out all of the generation that we don't want
     out_arr[~bg_mask] = 0
