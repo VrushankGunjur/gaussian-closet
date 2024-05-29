@@ -19,13 +19,9 @@ const App = () => {
     const [cFg, setCFg] = useState('');
     const [maskBg, setMaskBg] = useState('');
     const [maskFg, setMaskFg] = useState('');
+    const [maskID, setMaskID] = useState('');
 
-    // const canvasM = React.useRef();
     const [clothingItems, setClothingItems] = useState([]);
-
-    
-
-    // canvas 1 is the background image, canvas 2 is the foreground image
 
     const updatecBg = (input) => {
       setCBg(input);
@@ -110,23 +106,9 @@ const App = () => {
             let bg_mask = response.data.bg_mask;
             let fg_mask = response.data.fg_mask;
 
-            // bg_mask = bg_mask.blob();
-            // let bg_mask_url = URL.createObjectURL(bg_mask);
-            // console.log("bg mask url: ", bg_mask_url);
             setMaskBg(bg_mask);
-            // fabric.Image.fromURL(bg_mask_url, function(img) {
-            //     cBg.add(img);
-            //     cBg.renderAll();
-            // });
-
-            // fg_mask = fg_mask.blob();
-            // let fg_mask_url = URL.createObjectURL(fg_mask);
-            // console.log("fg mask url: ", fg_mask_url);
             setMaskFg(fg_mask);
-            // fabric.Image.fromURL(fg_mask_url, function(img) {
-            //     cFg.add(img);
-            //     cFg.renderAll();
-            // });
+            setMaskID('placeholder');
 
             // TODO:
             // - make the masks translucent to see the image underneath
@@ -140,7 +122,6 @@ const App = () => {
         }
     }
 
-    
 
     const postDataFull = async () => {
       console.log(cBg);
@@ -181,14 +162,29 @@ const App = () => {
         }
       });
 
+      paths1.push("NONE");
+      paths2.push("NONE");
+
       let data = null;
 
       if (segmentTarget != '') {
-        data = {
-          segment_type: 'auto',
-          segment_target: segmentTarget,
-          bg_image_url: cBg.backgroundImage._element.src,
-          fg_image_url: cFg.backgroundImage._element.src,
+        if (maskID != '') {
+          console.log('partial')
+          data = {
+            segment_type: 'partial',
+            segment_target: segmentTarget,
+            bg_image_url: cBg.backgroundImage._element.src,
+            fg_image_url: cFg.backgroundImage._element.src,
+            bg_path: paths1[0],
+            fg_path: paths2[0]
+          }
+        } else {
+          data = {
+            segment_type: 'auto',
+            segment_target: segmentTarget,
+            bg_image_url: cBg.backgroundImage._element.src,
+            fg_image_url: cFg.backgroundImage._element.src,
+          }
         }
       } else {
         data = {
