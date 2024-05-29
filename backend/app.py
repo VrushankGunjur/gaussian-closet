@@ -12,6 +12,7 @@ import numpy as np
 import pickle
 import io
 import torch
+import cv2
 
 # from backend_segmenter.auto_segmenter import AutoSegmenter
 
@@ -85,6 +86,24 @@ def widen_mask(mask):
                 new_mask[i][j] = True
     return new_mask
 
+def gaussuian_filter(kernel_size, sigma=1, muu=0):
+    x, y = np.meshgrid(np.linspace(-1, 1, kernel_size),
+                       np.linspace(-1, 1, kernel_size))
+    dst = np.sqrt(x**2+y**2)
+ 
+    normal = 1/(2, 0 * np.pi * sigma**2)
+ 
+    gauss = np.exp(-((dst-muu)**2 / (2.0 * sigma**2))) * normal
+    
+    kernel /= np.sum(kernel)
+    return kernel
+
+def blur_mask(mask):
+    kernel = gaussian_kernel(57, sigma=57);
+    new_mask = mask.copy().astype(np.double)
+    blur_mask = cv2.filter2D(new_mask, -1, kernel)
+    return blur_mask
+
 @app.route("/")
 @cross_origin()
 def index():
@@ -105,6 +124,15 @@ def segment():
     fg_mask = fg_masks[0][0]
 
     torch.cuda.empty_cache()
+
+    # this is just a backend mask to test that blurring the mask works
+    test = blur_mask(bg_mask)
+    print(test)
+    print(np.max(test))
+
+    test *= 255
+
+    Image.fromarray(test.astype(np.uint8), mode="L").save(f"./masks/blurred_mask.png") 
 
     for i in range(10):
         bg_mask = widen_mask(bg_mask)
@@ -243,7 +271,12 @@ def in_fill():
     Image.fromarray(bg_arr.astype(np.uint8)).save(f"./intermediates/keep_from_og_{id}.jpg")
 
 
-    generation = bg_arr + out_arr
+    # generation = bg_arr + out_arr
+
+    fuzzy_mask = blur_mask(bg_mask)
+    fuzzy_mask = np.stack([fuzzy_mask, fuzzy_mask, fuzzy_mask], axis=2)
+
+    generation = fuzzy_mask * out_arr + (np.ones(fuzzy_mask.shape).astype(np.double) - fuzzy_mask) * bg_arr
 
     gen = Image.fromarray(generation.astype(np.uint8))
 
