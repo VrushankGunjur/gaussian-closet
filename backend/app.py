@@ -61,6 +61,15 @@ def segment():
 
     torch.cuda.empty_cache()
 
+    # this is just a backend mask to test that blurring the mask works
+    test = blur_mask(bg_mask)
+    print(test)
+    print(np.max(test))
+
+    test *= 255
+
+    Image.fromarray(test.astype(np.uint8), mode="L").save(f"./masks/blurred_mask.png") 
+
     # add the bg & fg images to the request to the in-memory map
     request_id = uuid.uuid1()
     request_to_imgs[request_id] = (bg, fg)
@@ -269,7 +278,12 @@ def in_fill():
     Image.fromarray(bg_arr.astype(np.uint8)).save(f"./intermediates/keep_from_og_{id}.jpg")
 
 
-    generation = bg_arr + out_arr
+    # generation = bg_arr + out_arr
+
+    fuzzy_mask = blur_mask(bg_mask)
+    fuzzy_mask = np.stack([fuzzy_mask, fuzzy_mask, fuzzy_mask], axis=2)
+
+    generation = fuzzy_mask * out_arr + (np.ones(fuzzy_mask.shape).astype(np.double) - fuzzy_mask) * bg_arr
 
     gen = Image.fromarray(generation.astype(np.uint8))
 
