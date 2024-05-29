@@ -7,7 +7,7 @@ import axios from 'axios';
 const SegmentCanvas = (props) => {
     const [canvas, setCanvas] = useState('');
     const [imgURL, setImgURL] = useState('https://m.media-amazon.com/images/I/81XW83q04fL.jpg');
-    const [backgroundURL, setBackgroundURL] = useState('https://slimages.macysassets.com/is/image/MCY/products/9/optimized/26977799_fpx.tif?op_sharpen=1&wid=700&hei=855&fit=fit,1&fmt=webp');
+    const [backgroundURL, setBackgroundURL] = useState('');
     const [isDrawingMode, setIsDrawingMode] = useState(false);
     const canvasID = `canvas-${props.cid}`
 
@@ -22,7 +22,7 @@ const SegmentCanvas = (props) => {
             height: 800,
             width: 800,
             //backgroundImage: backgroundURL,
-            backgroundImage:'https://slimages.macysassets.com/is/image/MCY/products/9/optimized/26977799_fpx.tif?op_sharpen=1&wid=700&hei=855&fit=fit,1&fmt=webp',
+            backgroundImage:'',
             isDrawingMode: isDrawingMode
         })
     )
@@ -38,6 +38,8 @@ const SegmentCanvas = (props) => {
             canvi.setWidth(img.width);
             console.log("Image loaded");
         }
+
+        console.log(url);
 
         canvi.setBackgroundImage(url, canvi.renderAll.bind(canvi));
         
@@ -93,7 +95,7 @@ const SegmentCanvas = (props) => {
 
     return(
       <div>
-        <h1>Canvas {props.cid}</h1>
+        <h1>{props.cid}: </h1>
           <div>
           </div>
         <form onSubmit={e => addImg(e, imgURL, canvas)}>
