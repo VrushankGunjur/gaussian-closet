@@ -1,4 +1,5 @@
 import './App.css';
+import '../node_modules/react-mask-editor/dist/style.css';
 import SegmentCanvas from './components/SegmentCanvas.js';
 import React, { useState, useEffect } from 'react';
 import { fabric } from 'fabric';
@@ -8,12 +9,16 @@ import axios from 'axios';
 
 const App = () => {
     const [waitingID, setWaitingID] = useState('');
-    const [backendURL, setBackendURL] = useState('http://35.203.124.234:5000');
+    const [backendURL, setBackendURL] = useState('http://34.47.24.64:5000');
     const [outputImg, setOutputImg] = useState('');
     const [outputImgPresent, setOutputImgPresent] = useState(false);
     const [segmentTarget, setSegmentTarget] = useState(''); // for auto-segmentation
     const [cBg, setCBg] = useState('');
     const [cFg, setCFg] = useState('');
+    const [maskBg, setMaskBg] = useState('');
+    const [maskFg, setMaskFg] = useState('');
+
+    // const canvasM = React.useRef();
 
     // canvas 1 is the background image, canvas 2 is the foreground image
 
@@ -96,21 +101,23 @@ const App = () => {
             let bg_mask = response.data.bg_mask;
             let fg_mask = response.data.fg_mask;
 
-            bg_mask = bg_mask.blob();
-            let bg_mask_url = URL.createObjectURL(bg_mask);
-            console.log("bg mask url: ", bg_mask_url);
-            fabric.Image.fromURL(bg_mask_url, function(img) {
-                cBg.add(img);
-                cBg.renderAll();
-            });
+            // bg_mask = bg_mask.blob();
+            // let bg_mask_url = URL.createObjectURL(bg_mask);
+            // console.log("bg mask url: ", bg_mask_url);
+            setMaskBg(bg_mask);
+            // fabric.Image.fromURL(bg_mask_url, function(img) {
+            //     cBg.add(img);
+            //     cBg.renderAll();
+            // });
 
-            fg_mask = fg_mask.blob();
-            let fg_mask_url = URL.createObjectURL(fg_mask);
-            console.log("fg mask url: ", fg_mask_url);
-            fabric.Image.fromURL(fg_mask_url, function(img) {
-                cFg.add(img);
-                cFg.renderAll();
-            });
+            // fg_mask = fg_mask.blob();
+            // let fg_mask_url = URL.createObjectURL(fg_mask);
+            // console.log("fg mask url: ", fg_mask_url);
+            setMaskFg(fg_mask);
+            // fabric.Image.fromURL(fg_mask_url, function(img) {
+            //     cFg.add(img);
+            //     cFg.renderAll();
+            // });
 
             // TODO:
             // - make the masks translucent to see the image underneath
@@ -212,8 +219,9 @@ const App = () => {
         <div>
           {outputImgPresent ? (<div><img src={outputImg}/></div>) : (<div></div>)}
         </div>
-        <SegmentCanvas cid={"bg"} updateCanvas={updatecBg}/>
-        <SegmentCanvas cid={"fg"} updateCanvas={updatecFg}/>
+        <button onClick={() => postAutoSegmentRequest()}>Get Segments</button>
+        <SegmentCanvas cid={"bg"} updateCanvas={updatecBg} mask={maskBg}/>
+        <SegmentCanvas cid={"fg"} updateCanvas={updatecFg} mask={maskFg}/>
       </div>
     );
   }
