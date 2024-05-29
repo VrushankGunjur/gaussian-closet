@@ -63,6 +63,28 @@ def union_mask(a, b):
     out = np.logical_or(a_, b_)
     return Image.fromarray(out)
 
+def is_neighbor(mask, i, j):
+    a, b, c, d = False, False, False, False
+
+    if (i > 0):
+        a = mask[i - 1][j]
+    if (i < mask.shape[0] - 1):
+        b = mask[i + 1][j]
+    if (j > 0):
+        c = mask[i][j - 1]
+    if (j < mask.shape[1] - 1):
+        d = mask[i][j + 1]
+    return a or b or c or d
+
+def widen_mask(mask):
+    invert = np.invert(mask)
+    new_mask = np.copy(mask)
+    for i in range(mask.shape[0]):
+        for j in range(mask.shape[1]):
+            if (not mask[i][j] and is_neighbor(mask, i, j)):
+                new_mask[i][j] = True
+    return new_mask
+
 @app.route("/")
 @cross_origin()
 def index():
@@ -83,6 +105,10 @@ def segment():
     fg_mask = fg_masks[0][0]
 
     torch.cuda.empty_cache()
+
+    for i in range(10):
+        bg_mask = widen_mask(bg_mask)
+        fg_mask = widen_mask(fg_mask)
 
     # send back the bg_mask and fg_mask as base64
     bg_mask = Image.fromarray(bg_mask.astype(np.uint8)*255)
@@ -116,6 +142,8 @@ def in_fill():
     if (content["segment_type"] == "auto" or content["segment_type"] == "partial"):
         print('segmenting')
 
+        torch.cuda.empty_cache()
+
         from auto_segmenter import AutoSegmenter
 
         seg = AutoSegmenter()
@@ -145,6 +173,11 @@ def in_fill():
     else:
         bg_mask = svg_to_mask(content['bg_path'], bg.size, "bg_mask")
         fg_mask = svg_to_mask(content['fg_path'], fg.size, "fg_mask")
+
+    # widen masks
+    for i in range(10):
+        bg_mask = widen_mask(bg_mask)
+        fg_mask = widen_mask(fg_mask)
 
     if (content["segment_type"] == "partial"):
         print("partial detected")
@@ -216,6 +249,7 @@ def in_fill():
 
     gen.save(f"./generations/{id}.jpg")
 
+    print(id)
 
     base64img = None
 
