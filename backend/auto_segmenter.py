@@ -47,7 +47,23 @@ class AutoSegmenter():
         self.threshold = threshold
         self.detector_id = detector_id
         self.segmenter_id = segmenter_id
-    
+
+    def run_segmenter_single(self,
+                             img: Union[Image.Image, str], 
+                             labels: List[str],
+                             polygon_refinement=True):
+        image_array, detections = self.grounded_segmentation(
+            image=img,
+            labels=labels,
+            threshold=self.threshold,
+            polygon_refinement=polygon_refinement,
+            detector_id=self.detector_id,
+            segmenter_id=self.segmenter_id
+        )
+
+        masks = self.create_mask(image_array, detections)
+        return masks
+
     def run_segmenter(self, 
                       background: Union[Image.Image, str], 
                       foreground: Union[Image.Image, str], 
