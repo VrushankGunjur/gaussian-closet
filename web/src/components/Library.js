@@ -4,8 +4,9 @@ import {
     DialogActions, IconButton, Grid, Card, CardMedia, CardContent
 } from '@mui/material';
 import DeleteIcon from '@mui/icons-material/Delete';
+import { v4 as uuidv4 } from 'uuid';
 
-const Library = ({ clothingItems, addClothingItem, removeClothingItem }) => {
+const Library = ({ clothingItems, addClothingItem, removeClothingItem, sendCardContent }) => {
     const [open, setOpen] = useState(false);
     const [imageUrl, setImageUrl] = useState('');
     const [file, setFile] = useState(null);
@@ -27,6 +28,7 @@ const Library = ({ clothingItems, addClothingItem, removeClothingItem }) => {
             const reader = new FileReader();
             reader.onloadend = () => {
                 addClothingItem({
+                    fg_cloth_id: uuidv4(),
                     url: file ? reader.result : imageUrl,
                     type: clothingType,
                     description: description || clothingType,
@@ -53,6 +55,8 @@ const Library = ({ clothingItems, addClothingItem, removeClothingItem }) => {
         setOpen(false);
     };
 
+
+
     return (
         <Box>
             <Typography variant="h4" gutterBottom>
@@ -61,32 +65,37 @@ const Library = ({ clothingItems, addClothingItem, removeClothingItem }) => {
             <Button variant="contained" color="primary" onClick={handleOpen} style={{ marginBottom: '16px' }}>
                 Add Item
             </Button>
-            { clothingItems.length != 0 && 
-            <Paper style={{ maxHeight: '60vh', overflow: 'auto', padding: '16px' }}>
-                <Grid container spacing={2}>
-                    {clothingItems.map((item, index) => (
-                        <Grid item xs={12} sm={6} key={index}>
-                            <Card>
-                                <CardMedia
-                                    component="img"
-                                    height="300"
-                                    image={item.url}
-                                    alt={`Clothing item ${index}`}
-                                    style={{ objectFit: 'cover' }}
-                                />
-                                <CardContent style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                                    <Typography variant="body2" color="textSecondary" component="p">
-                                        {item.description}
-                                    </Typography>
-                                    <IconButton edge="end" aria-label="delete" onClick={() => removeClothingItem(index)}>
-                                        <DeleteIcon />
-                                    </IconButton>
-                                </CardContent>
-                            </Card>
-                        </Grid>
-                    ))}
-                </Grid>
-            </Paper>
+            {clothingItems.length !== 0 &&
+                <Paper style={{ maxHeight: '60vh', overflow: 'auto', padding: '16px' }}>
+                    <Grid container spacing={2}>
+                        {clothingItems.map((item, index) => (
+                            <Grid item xs={12} sm={6} key={index}>
+                                <Card>
+                                    <CardMedia
+                                        component="img"
+                                        height="200"
+                                        image={item.url}
+                                        alt={`Clothing item ${index}`}
+                                        style={{ objectFit: 'cover' }}
+                                    />
+                                    <CardContent style={{ display: 'flex', flexDirection: 'column', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+                                        <Typography variant="body2" color="textSecondary" component="p">
+                                            {item.description}
+                                        </Typography>
+                                        <Box style={{ display: 'flex', justifyContent: 'space-between', width: '100%' }}>
+                                            <Button variant="contained" color="primary" onClick={() => sendCardContent(item)}>
+                                                Send
+                                            </Button>
+                                            <IconButton edge="end" aria-label="delete" onClick={() => removeClothingItem(index)}>
+                                                <DeleteIcon />
+                                            </IconButton>
+                                        </Box>
+                                    </CardContent>
+                                </Card>
+                            </Grid>
+                        ))}
+                    </Grid>
+                </Paper>
             }
             <Dialog open={open} onClose={handleClose}>
                 <DialogTitle>Add New Clothing Item</DialogTitle>
@@ -138,4 +147,4 @@ const Library = ({ clothingItems, addClothingItem, removeClothingItem }) => {
     );
 }
 
-    export default Library;
+export default Library;

@@ -12,9 +12,9 @@ const Workspace = ( props ) => {
     }, []);
 
     const initCanvas = () => (
-        new fabric.Canvas('workspace canvas', {
+        new fabric.Canvas('workspaceCanvas', {
             height: 400,
-            width: 650, // @VRUSHANK @NAHUM this should be the widt of the workspace column
+            width: 650, // @VRUSHANK @NAHUM this should be the width of the workspace column
             //backgroundImage: 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRzb4Jrezq8NF7RRGXpxMR8jAlK2SHZ0uFJFPKaS5oPag&s',
             //backgroundImage: backgroundURL
         })
@@ -97,7 +97,7 @@ const Workspace = ( props ) => {
     return (
         <div>
             <p>Workspace</p>
-            <canvas id="workspace canvas" width="800" height="800"></canvas>
+            <canvas id="workspaceCanvas" width="650" height="400"></canvas>
             <div >
                 <p>Enter URL of an image to the workspace</p>
                 <form onSubmit={e => setBackground(e, imgURL, localCanvas)}>
