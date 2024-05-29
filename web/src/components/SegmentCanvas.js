@@ -4,12 +4,35 @@ import axios from 'axios';
 
 // https://aprilescobar.medium.com/part-3-fabric-js-on-react-fabric-image-fromurl-4185e0d945d3
 
+// creates an empty mask of w x h dimensions
+const createEmptyMask = (w, h) => {
+  let l = Array(w).fill(false);
+  return Array(h).fill(l);
+}
+
 const SegmentCanvas = (props) => {
     const [canvas, setCanvas] = useState('');
     const [imgURL, setImgURL] = useState('https://m.media-amazon.com/images/I/81XW83q04fL.jpg');
     const [backgroundURL, setBackgroundURL] = useState('');
-    const [isDrawingMode, setIsDrawingMode] = useState(false);
+    // const [isDrawingMode, setIsDrawingMode] = useState(false);
+    const [prevMask, setPrevMask] = useState('');
     const canvasID = `canvas-${props.cid}`
+
+    // render mask
+    if (props.mask !== prevMask) {
+      // let mask = props.mask.blob();
+      // let mask_url = URL.createObjectURL(mask);
+      let mask_url = `data:image/jpeg;base64,${props.mask}`;
+      console.log("fg mask url: ", mask_url);
+      fabric.Image.fromURL(mask_url, function(img) {
+          canvas.add(img);
+          canvas.renderAll();
+      }, {
+        opacity: 0.40
+      });
+      setPrevMask(props.mask);
+    }
+
 
     // maintain a mapping from URL to objectID?
 
@@ -17,15 +40,22 @@ const SegmentCanvas = (props) => {
         setCanvas(initCanvas());
     }, []);
     
-    const initCanvas = () => (
-        new fabric.Canvas(canvasID, {
-            height: 800,
-            width: 800,
-            //backgroundImage: backgroundURL,
-            backgroundImage:'',
-            isDrawingMode: isDrawingMode
-        })
-    )
+    const initCanvas = () => {
+      let out = new fabric.Canvas(canvasID, {
+        height: 800,
+        width: 800,
+        //backgroundImage: backgroundURL,
+        backgroundImage:'',
+        isDrawingMode: true 
+    })
+
+    out.freeDrawingBrush.width = 20;
+    out.freeDrawingBrush.color = "rgba(255,0,0,.5)";
+    props.updateCanvas(out);
+
+      return out;
+    }
+      
 
     const setBackground = (e, url, canvi) => {
         e.preventDefault();
@@ -45,7 +75,7 @@ const SegmentCanvas = (props) => {
         
         console.log(img.width, img.height);
         canvi.renderAll();
-        setBackgroundURL('');        // reset the image URL
+        // setBackgroundURL('');        // reset the image URL
         props.updateCanvas(canvi);
     }
 
@@ -63,13 +93,13 @@ const SegmentCanvas = (props) => {
         props.updateCanvas(canvi);
     }
 
-    const toggleDrawingMode = () => {
-      canvas.isDrawingMode = !canvas.isDrawingMode;
-      setIsDrawingMode(canvas.isDrawingMode);
-      canvas.freeDrawingBrush.width = 20;
-      canvas.freeDrawingBrush.color = "rgba(255,0,0,.5)";
-      props.updateCanvas(canvas);
-    }
+    // const toggleDrawingMode = () => {
+    //   canvas.isDrawingMode = !canvas.isDrawingMode;
+    //   setIsDrawingMode(canvas.isDrawingMode);
+    //   canvas.freeDrawingBrush.width = 20;
+    //   canvas.freeDrawingBrush.color = "rgba(255,0,0,.5)";
+    //   props.updateCanvas(canvas);
+    // }
 
     const getPositions = () => {
         console.log(canvas);
@@ -91,6 +121,14 @@ const SegmentCanvas = (props) => {
             console.log("Coords: ", object.lineCoords);
           }
         });
+    }
+
+    const updateMask = () => {
+      console.log('hello')
+      let imageData = document.getElementById("hello").getContext("2d").createImageData(800, 800);
+      document.getElementById("hello").getContext("2d").fillRect(0, 0, 500, 500)
+      // imageData.data = imageData.data[50 * (imageData.width * 4) + 200 * 4 + 2] + 100;
+      // console.log(e)
     }
 
     return(
@@ -120,9 +158,11 @@ const SegmentCanvas = (props) => {
         </form>
        <br/><br/>
        <button onClick={() => getPositions()}>Get Positions</button>
-       <button onClick={() => toggleDrawingMode()}>Toggle Drawing Mode {isDrawingMode ? "(on)" : "(off)"}</button>
+       {/* <button onClick={() => toggleDrawingMode()}>Toggle Drawing Mode {isDrawingMode ? "(on)" : "(off)"}</button> */}
        {/* <button onClick={() => dumpPath()}>Dump Path</button> */}
-       <canvas id={canvasID} />
+       <canvas id={canvasID} onClick={(e) => updateMask(e)} />
+       {/* <canvas id="hello"/> */}
+       {/* <button onClick={() => updateMask()}>Set Mask</button> */}
       </div>
     );
   }
