@@ -44,6 +44,7 @@ def aug_data_mask(image, mask):
 
 
 def process_pairs(ref_image, ref_mask, tar_image, tar_mask, max_ratio = 0.8, enable_shape_control = True):
+    print('using anydoor with enable shape control')
     # ========= Reference ===========
     # ref expand 
     ref_box_yyxx = get_bbox_from_mask(ref_mask)

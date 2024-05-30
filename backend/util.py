@@ -2,6 +2,14 @@ import io
 import base64
 from PIL import Image, ImageDraw
 from svgpathtools import Path, parse_path, svgstr2paths
+import numpy as np 
+import cv2 
+
+def blur_mask(mask):
+    kernel = gaussian_kernel(57, sigma=57);
+    new_mask = mask.copy().astype(np.double)
+    blur_mask = cv2.filter2D(new_mask, -1, kernel)
+    return blur_mask
 
 def img_to_base64(img, name):
     buf = io.BytesIO()
@@ -52,11 +60,16 @@ def is_neighbor(mask, i, j):
         d = mask[i][j + 1]
     return a or b or c or d
 
-def widen_mask(mask):
-    invert = np.invert(mask)
-    new_mask = np.copy(mask)
-    for i in range(mask.shape[0]):
-        for j in range(mask.shape[1]):
-            if (not mask[i][j] and is_neighbor(mask, i, j)):
-                new_mask[i][j] = True
-    return new_mask
+# def widen_mask(mask):
+#     invert = np.invert(mask)
+#     new_mask = np.copy(mask)
+#     for i in range(mask.shape[0]):
+#         for j in range(mask.shape[1]):
+#             if (not mask[i][j] and is_neighbor(mask, i, j)):
+#                 new_mask[i][j] = True
+#     return new_mask
+
+def widen_mask(mask, iterations=5):
+    kernel = np.ones((3,3), np.uint8)  # Define a 3x3 kernel
+    new_mask = cv2.dilate(mask.astype(np.uint8), kernel, iterations=iterations)
+    return new_mask.astype(bool)
