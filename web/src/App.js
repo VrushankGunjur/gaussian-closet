@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useRef } from 'react';
 import './App.css';
 import SegmentCanvas from './components/SegmentCanvas.js';
 import Library from './components/Library.js';
@@ -29,6 +29,8 @@ const App = () => {
     const [clothingItems, setClothingItems] = useState([]);
     const [workspaceCanvas, setWorkspaceCanvas] = useState('');
     const [previewCanvas, setPreviewCanvas] = useState('');
+    const previewCanvasRef = useRef(null);
+
 
     const murmur = require('murmurhash-js');
 
@@ -39,8 +41,6 @@ const App = () => {
     const updatePreviewCanvas = (input) => {
         setPreviewCanvas(input);
     }
-
-
 
     const updatecBg = (input) => {
         setCBg(input);
@@ -54,6 +54,10 @@ const App = () => {
         setClothingItems([...clothingItems, item]);
     }
 
+    const stageClothingItem = (item) => {
+        // todo: fill this in. it must 1) add the item to the preview canvas, 2) send the item to the backend for segmentation
+    }
+
     const removeClothingItem = (index) => {
         const updatedItems = clothingItems.filter((_, i) => i !== index);
         setClothingItems(updatedItems);
@@ -63,6 +67,14 @@ const App = () => {
         const seed = 0;
         const hash = murmur.murmur3(string, seed); // or use murmur.murmur2 for murmur2 hash
         return hash;
+    }
+
+    const displayImageOnPreview = (item) => {
+        console.log('previewCanvasRef: ', previewCanvasRef.current)
+        if (previewCanvasRef.current) {
+            previewCanvasRef.current.clear(); // Clear the canvas before adding the new image
+            previewCanvasRef.current.setBackground(item.url, previewCanvasRef.current);
+        }
     }
 
     const postGenerationRequest = async (string) => {
@@ -122,8 +134,6 @@ const App = () => {
                 "Access-Control-Allow-Origin": backendURL
             }
         });
-        
-        console.log(fg_item);
 
         let bg_url = workspaceCanvas.backgroundImage._element.src;
         console.log("bg_url: ", bg_url);
@@ -228,6 +238,8 @@ const App = () => {
             });
         }
     }
+
+    
 
     // const postAutoSegmentRequest = async () => {
     //     const client = axios.create({
@@ -378,8 +390,8 @@ const App = () => {
     return (
       <Container className="App">
           <Typography variant="h4" gutterBottom>Gaussian Closet</Typography>
-          <Grid container spacing={3} style={{ height: '100vh' }}>
-              <Grid item xs={10} md={4} style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+          <Grid container spacing={1} style={{ height: '100vh' }}>
+              <Grid item xs={12} md={4} style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
                   <TextField 
                       label="Backend URL" 
                       variant="outlined" 
@@ -411,12 +423,18 @@ const App = () => {
 
               <Grid item xs={8} md={4} style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
 
-                  <PreviewWorkspace updateCanvas={updatePreviewCanvas}/>
+                    <PreviewWorkspace ref={previewCanvasRef} updateCanvas={updatePreviewCanvas} stageClothingItem={stageClothingItem}/>
               </Grid>
 
               <Grid item xs={8} md={4}>
                   <Box className="scrollable-column">
-                      <Library clothingItems={clothingItems} addClothingItem={addClothingItem} removeClothingItem={removeClothingItem} sendCardContent={postSegmentRequest} />
+                      <Library 
+                        clothingItems={clothingItems} 
+                        addClothingItem={addClothingItem} 
+                        removeClothingItem={removeClothingItem} 
+                        sendCardContent={postSegmentRequest} 
+                        displayImageOnPreview={displayImageOnPreview}
+                        />
                   </Box>
               </Grid>
           </Grid>

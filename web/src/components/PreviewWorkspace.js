@@ -1,10 +1,14 @@
-import React, { useState, useEffect, useRef } from 'react';
-import { Container, TextField, Button, Typography, Box, Grid, Paper } from '@mui/material';
+import React, { useState, useEffect, useRef, forwardRef, useImperativeHandle } from 'react';
+import { Container, TextField, Button, Typography, Box, Dialog, DialogTitle, DialogContent, DialogActions } from '@mui/material';
 import { fabric } from 'fabric';
+import { v4 as uuidv4 } from 'uuid';
 
-const Workspace = (props) => {
+const PreviewWorkspace = forwardRef((props, ref) => {
+    const [open, setOpen] = useState(false);
+    const [imageUrl, setImageUrl] = useState('');
     const [file, setFile] = useState(null);
-    const [imgURL, setImageUrl] = useState('');
+    const [clothingType, setClothingType] = useState('');
+    const [description, setDescription] = useState('');
     const canvasRef = useRef(null);
 
     useEffect(() => {
@@ -33,9 +37,7 @@ const Workspace = (props) => {
         props.updateCanvas(canvasRef.current);
     }
 
-    const setBackground = (e, url, canvas) => {
-        if (e) e.preventDefault();
-
+    const setBackground = (url, canvas) => {
         fabric.Image.fromURL(url, function(img) {
             const scalingFactor = canvas.height / img.height;
             img.scale(scalingFactor);
@@ -55,52 +57,118 @@ const Workspace = (props) => {
         props.updateCanvas(canvas);
     }
 
+    useImperativeHandle(ref, () => ({
+        setBackground: (url) => {
+            setBackground(url, canvasRef.current);
+        },
+        clear: () => {
+            canvasRef.current.clear();
+        }
+    }));
+
     const handleFileUpload = (event) => {
         setFile(event.target.files[0]);
+        setImageUrl('');
     };
 
-    const handleAddByFile = () => {
-        if (file) {
+    const handleUrlChange = (event) => {
+        setImageUrl(event.target.value);
+        setFile(null);
+    };
+
+    const handleOpen = () => {
+        setOpen(true);
+    };
+
+    const handleClose = () => {
+        setOpen(false);
+    };
+
+    const stageItem = () => {
+        if (imageUrl || file) {
             const reader = new FileReader();
             reader.onloadend = () => {
-                setBackground(null, reader.result, canvasRef.current);
+                const imageData = file ? reader.result : imageUrl;
+
+                // update the canvas with the new image
+                setBackground(imageData, canvasRef.current);
+
+                props.stageClothingItem({
+                    fg_cloth_id: uuidv4(),
+                    url: imageData,
+                    type: clothingType,
+                    description: description || clothingType,
+                });
+                setImageUrl('');
                 setFile(null);
+                setClothingType('');
+                setDescription('');
+                setOpen(false);
             };
-            reader.readAsDataURL(file);
+            if (file) {
+                reader.readAsDataURL(file);
+            } else {
+                reader.onloadend();
+            }
         }
     };
 
     return (
         <Container>
-            <Typography variant="h5">Workspace</Typography>
-            <canvas id="previewCanvas" width="400" height="400"></canvas>
-            <Box mt={2}>
-                <Typography variant="body1">Enter URL of an image to the workspace</Typography>
-                <form onSubmit={e => setBackground(e, imgURL, canvasRef.current)}>
-                    <TextField 
-                        type="text" 
-                        value={imgURL}
-                        onChange={e => setImageUrl(e.target.value)} 
-                        fullWidth 
-                        margin="normal"
+            <Typography variant="h5" gutterBottom>Workspace</Typography>
+            <Box display="flex" justifyContent="center" alignItems="center" mt={2} mb={2}>
+                <canvas id="previewCanvas" width="350" height="400" style={{ border: '1px solid #000' }}></canvas>
+            </Box>
+            <Button variant="contained" color="primary" onClick={handleOpen}>Stage Item</Button>
+
+            <Dialog open={open} onClose={handleClose}>
+                <DialogTitle>Stage Clothing Item</DialogTitle>
+                <DialogContent>
+                    <TextField
+                        label="Clothing Type"
+                        variant="outlined"
+                        fullWidth
+                        value={clothingType}
+                        onChange={e => setClothingType(e.target.value)}
+                        margin="dense"
                     />
-                    <Button type="submit" variant="contained" color="primary">Submit URL</Button>
-                </form>
-            </Box>
-            <Box mt={2}>
-                <Typography variant="body1">Upload an image to the workspace</Typography>
-                <TextField 
-                    type="file" 
-                    onChange={handleFileUpload} 
-                    fullWidth 
-                />
-                <Button variant="contained" color="primary" onClick={handleAddByFile} style={{ marginTop: '8px' }}>
-                    Add by File
-                </Button>
-            </Box>
-            <Button variant="contained" color="secondary" style={{ marginTop: '16px' }}>Generate</Button>
+                    <TextField
+                        label="Description"
+                        variant="outlined"
+                        fullWidth
+                        value={description}
+                        onChange={e => setDescription(e.target.value)}
+                        margin="dense"
+                    />
+                    <Box display="flex" alignItems="center" mt={2}>
+                        <TextField
+                            label="Enter image URL"
+                            variant="outlined"
+                            fullWidth
+                            value={imageUrl}
+                            onChange={handleUrlChange}
+                            margin="dense"
+                            disabled={!!file}
+                        />
+                        <input
+                            type="file"
+                            onChange={handleFileUpload}
+                            style={{ marginLeft: '16px' }}
+                            disabled={!!imageUrl}
+                        />
+                    </Box>
+                </DialogContent>
+                <DialogActions>
+                    <Button onClick={handleClose} color="secondary">
+                        Cancel
+                    </Button>
+                    <Button onClick={stageItem} color="primary">
+                        Stage Item
+                    </Button>
+                </DialogActions>
+            </Dialog>
         </Container>
     );
-}
+});
 
-export default Workspace;
+export default PreviewWorkspace;

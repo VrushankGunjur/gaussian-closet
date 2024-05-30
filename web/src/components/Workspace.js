@@ -97,7 +97,7 @@ const Workspace = ( props ) => {
     return (
         <div>
             <p>Workspace</p>
-            <canvas id="workspaceCanvas" width="650" height="400"></canvas>
+            <canvas id="workspaceCanvas" width="650" height="400" style={{ border: '1px solid #000' }}></canvas>
             <div >
                 <p>Enter URL of an image to the workspace</p>
                 <form onSubmit={e => setBackground(e, imgURL, localCanvas)}>
