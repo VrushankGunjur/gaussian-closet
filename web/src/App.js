@@ -217,55 +217,31 @@ const App = () => {
     }
 
     return (
-      <Container className="App">
+        <Container className="App">
           <Typography variant="h4" gutterBottom>Gaussian Closet</Typography>
-          <Grid container spacing={1} style={{ height: '100vh' }}>
-              <Grid item xs ={12} md={4} style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
-                  <TextField 
-                      label="Backend URL" 
-                      variant="outlined" 
-                      fullWidth 
-                      value={backendURL} 
-                      onChange={e => setBackendURL(e.target.value)} 
-                  />
-                  <Button variant="contained" color="primary" /*onClick={postDataFull}*/>
-                      Post Data
-                  </Button>
-                  <TextField 
-                      label="Segment Target" 
-                      variant="outlined" 
-                      fullWidth 
-                      value={segmentTarget} 
-                      onChange={e => setSegmentTarget(e.target.value)} 
-                  />
-                  <Button /*onClick={postAutoSegmentRequest}*/>Get Segments</Button>
-                  {outputImgPresent && (
-                      <Paper elevation={3}>
-                          <img src={outputImg} alt="Output" style={{ width: '100%' }} />
-                      </Paper>
-                  )}
-                  <Workspace updateCanvas={updateWorkspaceCanvas} postGenerationRequest={postGenerationRequest}/>
-              </Grid>
-
-              <Grid item xs={8} md={4} style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
-
-                    <PreviewWorkspace ref={previewCanvasRef} updateCanvas={updatePreviewCanvas} stageClothingItem={stageClothingItem}/>
-              </Grid>
-
-              <Grid item xs={8} md={4}>
-                  <Box className="scrollable-column">
-                      <Library 
-                        clothingItems={clothingItems} 
-                        addClothingItem={addClothingItem} 
-                        removeClothingItem={removeClothingItem} 
-                        sendCardContent={postSegmentRequest} 
-                        displayImageOnPreview={displayImageOnPreview}
-                        />
-                  </Box>
-              </Grid>
+          <Grid container spacing={3} style={{ height: '100vh' }}>
+            <Grid item xs={12} md={4} style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+              <Workspace updateCanvas={updateWorkspaceCanvas} postGenerationRequest={postGenerationRequest} />
+            </Grid>
+    
+            <Grid item xs={12} md={4} style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+              <PreviewWorkspace ref={previewCanvasRef} updateCanvas={updatePreviewCanvas} stageClothingItem={stageClothingItem} />
+            </Grid>
+    
+            <Grid item xs={12} md={4} style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+              <Box className="scrollable-column">
+                <Library
+                  clothingItems={clothingItems}
+                  addClothingItem={addClothingItem}
+                  removeClothingItem={removeClothingItem}
+                  sendCardContent={postSegmentRequest}
+                  displayImageOnPreview={displayImageOnPreview}
+                />
+              </Box>
+            </Grid>
           </Grid>
-      </Container>
-  );
+        </Container>
+      );
 }
 
 export default App;

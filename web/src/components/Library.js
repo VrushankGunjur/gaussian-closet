@@ -70,7 +70,7 @@ const Library = ({ clothingItems, addClothingItem, removeClothingItem, sendCardC
             </Button>
             {clothingItems.length !== 0 &&
                 <Paper style={{ maxHeight: '60vh', overflow: 'auto', padding: '16px' }}>
-                <Grid container spacing={2}>
+                <Grid container spacing={4}>
                     {clothingItems.map((item, index) => (
                         <Grid item xs={12} sm={6} key={index}>
                             <Card>
@@ -87,8 +87,8 @@ const Library = ({ clothingItems, addClothingItem, removeClothingItem, sendCardC
                                         {item.description}
                                     </Typography>
                                     <Box style={{ display: 'flex', justifyContent: 'space-between', width: '100%' }}>
-                                        <Button variant="contained" color="primary" onClick={() => handleSend(item)}>
-                                            Send
+                                        <Button variant="contained" color="primary" size="small" onClick={() => handleSend(item)}>
+                                            Stage
                                         </Button>
                                         <IconButton edge="end" aria-label="delete" onClick={() => removeClothingItem(index)}>
                                             <DeleteIcon />
