@@ -26,6 +26,17 @@ app.config["CORS_HEADERS"] = "Content-Type"
 def clip_base64_imgtags(url):
     return url[url.find("base64,")+len("base64,"):]
 
+
+def get_img(url):
+    if url.find("base64") != -1:
+        # encoded in base64
+        print('decoding base64 image')
+        return Image.open(BytesIO(base64.b64decode(clip_base64_imgtags(url))))
+    else:
+        print('fetching image from url')
+        response = requests.get(url)
+        img = Image.open(BytesIO(response.content))
+        return img
 @app.route("/")
 @cross_origin()
 def index():
@@ -36,19 +47,18 @@ def index():
 def segment():
     global mask_map
     global request_to_imgs
-    #print('clearing cache')
+   
+    print('clearing cache')
     torch.cuda.empty_cache()
     content = request.get_json()
     
     print('segmenting...')
 
-    base64bg_url = clip_base64_imgtags(content["bg_image_url"])
-    base64fg_url = clip_base64_imgtags(content["fg_image_url"])
+    # # if the images are base64 encoded, decode them.
 
+    bg = get_img(content["bg_image_url"])
+    fg = get_img(content["fg_image_url"])
 
-    #print(base64bg_url[:10])
-    bg = Image.open(BytesIO(base64.b64decode(base64bg_url)))
-    fg = Image.open(BytesIO(base64.b64decode(base64fg_url)))
 
     bg_cloth_id = content["bg_cloth_id"] # the specific target id in the background
     fg_cloth_id = content["fg_cloth_id"] # the specific target id in the foreground
@@ -59,11 +69,15 @@ def segment():
     fg_mask = None
     # look up fg and bg in the in-memory map to see if we have the masks for the segment target already
     if bg_cloth_id in mask_map:
+        print('using cached background mask')
         bg_mask = mask_map[bg_cloth_id]
     
     if fg_cloth_id in mask_map:
+        print('using cached foreground mask')
         fg_mask = mask_map[fg_cloth_id]
 
+    print('clearing cache again')
+    torch.cuda.empty_cache()
     segment_start_time = time.time()
     if bg_mask is None or fg_mask is None:
         from auto_segmenter import AutoSegmenter
@@ -104,8 +118,8 @@ def segment():
     #     bg_mask = widen_mask(bg_mask)
     #     fg_mask = widen_mask(fg_mask)
 
-    bg_mask = widen_mask(bg_mask, 10)
-    fg_mask = widen_mask(fg_mask, 10)
+    bg_mask = widen_mask(bg_mask, 5)
+    fg_mask = widen_mask(fg_mask, 3)
 
     print(f"Widening took {time.time() - widen_start_time} seconds")
 
@@ -149,11 +163,15 @@ def generate():
         #print("partial detected")
 
         if (content['bg_path'] != "NONE"): 
+            print('adding user markup to background mask')
             bg_mask_user = np.array(svg_to_mask(content['bg_path'], bg.size, "bg_mask"))
+            Image.fromarray(bg_mask_user.astype(np.uint8)*255).save(f"./masks/USER_bg_mask-13.jpg")
             bg_mask = np.logical_or(bg_mask, bg_mask_user)
+            Image.fromarray(bg_mask.astype(np.uint8)*255).save(f"./masks/UNIONED-13.jpg")
             # bg_mask = union_mask(bg_mask, bg_mask_user)
         
         if (content['fg_path'] != "NONE"):  
+            print('adding user markup to foreground mask')
             fg_mask_user = np.array(svg_to_mask(content['fg_path'], fg.size, "fg_mask"))
             fg_mask = np.logical_or(fg_mask, fg_mask_user)
             # fg_mask = union_mask(fg_mask, fg_mask_user)
@@ -172,21 +190,23 @@ def generate():
 
     task = AnyDoorTask(bg, bg_mask, fg, fg_mask, inference_single_image)
 
+    Image.fromarray(bg_mask.astype(np.uint8)*255).save(f"./masks_in_generate/masktoanydoor-{id}.jpg")
+    # Image.fromarray(bg.astype(np.uint8)).save(f"./masks_in_generate/bgtoanydoor-{id}.jpg")
+    bg.save(f"./masks_in_generate/bgtoanydoor-{id}.jpg")
     # out is the generated image
     out_arr = task.run()
     out = Image.fromarray(out_arr.astype(np.uint8))
     out.save(f"./imgs/direct_from_model_{id}.jpg")
 
-    Image.fromarray(bg_mask.astype(np.uint8)*255).save(f"./masks_in_generate/bg_mask_{id}.jpg")
     # mask out all of the generation that we don't want
     bg_mask = bg_mask.astype(bool)
     out_arr[~bg_mask] = 0
-    Image.fromarray(out_arr.astype(np.uint8)).save(f"./intermediates/masked_generation_{id}.jpg")
+    #Image.fromarray(out_arr.astype(np.uint8)).save(f"./intermediates/masked_generation_{id}.jpg")
 
     # mask out the part of the original image we want to replace
     bg_arr = np.array(bg)
     bg_arr[bg_mask] = 0
-    Image.fromarray(bg_arr.astype(np.uint8)).save(f"./intermediates/keep_from_og_{id}.jpg")
+    #Image.fromarray(bg_arr.astype(np.uint8)).save(f"./intermediates/keep_from_og_{id}.jpg")
     generation = bg_arr + out_arr
     gen = Image.fromarray(generation.astype(np.uint8))
     gen.save(f"./generations/{id}.jpg")

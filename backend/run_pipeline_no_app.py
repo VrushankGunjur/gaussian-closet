@@ -11,6 +11,7 @@ import pickle
 import io
 import torch
 import sys
+from util import * 
 
 def sample_path(path):
     points = []
@@ -35,8 +36,6 @@ def main():
 
     bg = Image.open("inputs/bg.jpg")
     fg = Image.open("inputs/fg.jpg")
-    #bg = Image.open(BytesIO(requests.get(content["bg_image_url"]).content))
-    #fg = Image.open(BytesIO(requests.get(content["fg_image_url"]).content)) 
 
     bg_mask, fg_mask = None, None
 
@@ -49,9 +48,9 @@ def main():
 
     bg_mask = bg_masks[0][0]    # get the first mask in the list, which is (mask Img, mask label)
     fg_mask = fg_masks[0][0]
-    print(bg_mask)
-        
-
+    
+    bg_mask = widen_mask(bg_mask, 10)
+    fg_mask = widen_mask(fg_mask, 2)
 
     print('clearing cache')
     torch.cuda.empty_cache()
@@ -62,8 +61,8 @@ def main():
 
     id = uuid.uuid1()
 
-    Image.fromarray(fg_mask.astype(np.uint8)*255).save(f"./masks/fg_mask_{id}.jpg")
-    Image.fromarray(bg_mask.astype(np.uint8)*255).save(f"./masks/bg_mask_{id}.jpg")
+    Image.fromarray(fg_mask.astype(np.uint8)*255).save(f"./no_app/fg_mask.jpg")
+    Image.fromarray(bg_mask.astype(np.uint8)*255).save(f"./no_app/bg_mask.jpg")
 
     task = AnyDoorTask(bg, bg_mask, fg, fg_mask, inference_single_image)
 
@@ -72,7 +71,7 @@ def main():
     out = Image.fromarray(out_arr.astype(np.uint8))
     
     print('saving generated image from model itself')
-    out.save(f"./imgs/from_model_direct_{id}.jpg")
+    out.save(f"./no_app/from_model_direct.jpg")
     # we want to replace the original image with the pixels in the generated
     # image only where the masks align
 
@@ -81,21 +80,21 @@ def main():
 
     # mask out all of the generation that we don't want
     out_arr[~bg_mask] = 0
-    Image.fromarray(out_arr.astype(np.uint8)).save(f"./intermediates/masked_generation_{id}.jpg")
+    Image.fromarray(out_arr.astype(np.uint8)).save(f"./no_app/masked_generation.jpg")
 
 
     # mask out the part of the original image we want to replace
     bg_arr = np.array(bg)
     bg_arr[bg_mask] = 0
 
-    Image.fromarray(bg_arr.astype(np.uint8)).save(f"./intermediates/keep_from_og_{id}.jpg")
+    Image.fromarray(bg_arr.astype(np.uint8)).save(f"./no_app/keep_from_og.jpg")
 
     generation = bg_arr + out_arr
 
     gen = Image.fromarray(generation.astype(np.uint8))
 
     print('saving generation')
-    gen.save(f"./generations/generation-{id}.jpg")
+    gen.save(f"./no_app/generation.jpg")
 
     print('clearing cache')
     torch.cuda.empty_cache()
