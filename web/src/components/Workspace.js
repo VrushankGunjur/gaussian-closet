@@ -18,7 +18,6 @@ const Workspace = ( props ) => {
             //backgroundImage: 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRzb4Jrezq8NF7RRGXpxMR8jAlK2SHZ0uFJFPKaS5oPag&s',
             //backgroundImage: backgroundURL
         })
-
     )
 
     const displayMask = (mask) => {
@@ -71,6 +70,11 @@ const Workspace = ( props ) => {
         props.updateCanvas(canvi);      // update the canvas in the parent component
     }
 
+    const deleteBackground = () => {
+        localCanvas.setBackgroundImage(null, localCanvas.renderAll.bind(localCanvas));
+        props.updateCanvas(localCanvas); // update the canvas in the parent component
+    }
+
     const handleFileUpload = (event) => {
         // console.log(event.target.files[0]);
         setFile(event.target.files[0]);
@@ -119,6 +123,9 @@ const Workspace = ( props ) => {
                     Add by File
                 </Button>
             </div>
+            <Button variant="contained" color="secondary" onClick={deleteBackground} style={{ marginTop: '8px' }}>
+                Delete Background
+            </Button>
             <Button onClick={props.postGenerationRequest}>Generate </Button>
         </div>
     );
