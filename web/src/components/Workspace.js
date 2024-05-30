@@ -14,11 +14,10 @@ const Workspace = ( props ) => {
     const initCanvas = () => (
         new fabric.Canvas('workspaceCanvas', {
             height: 400,
-            width: 650, // @VRUSHANK @NAHUM this should be the width of the workspace column
+            width: 400, // @VRUSHANK @NAHUM this should be the width of the workspace column
             //backgroundImage: 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRzb4Jrezq8NF7RRGXpxMR8jAlK2SHZ0uFJFPKaS5oPag&s',
             //backgroundImage: backgroundURL
         })
-
     )
 
     const displayMask = (mask) => {
@@ -71,6 +70,11 @@ const Workspace = ( props ) => {
         props.updateCanvas(canvi);      // update the canvas in the parent component
     }
 
+    const deleteBackground = () => {
+        localCanvas.setBackgroundImage(null, localCanvas.renderAll.bind(localCanvas));
+        props.updateCanvas(localCanvas); // update the canvas in the parent component
+    }
+
     const handleFileUpload = (event) => {
         // console.log(event.target.files[0]);
         setFile(event.target.files[0]);
@@ -94,9 +98,11 @@ const Workspace = ( props ) => {
     };
 
     return (
-        <div>
-            <p>Workspace</p>
-            <canvas id="workspaceCanvas" width="650" height="400" style={{ border: '1px solid #000' }}></canvas>
+        <Container>
+            <Typography variant="h5" gutterBottom>Workspace</Typography>
+            <Box display="flex" justifyContent="center" alignItems="center" mt={2} mb={2}>
+                <canvas id="workspaceCanvas" width="350" height="400" style={{ border: '1px solid #000' }}></canvas>
+            </Box>
             <div >
                 <p>Enter URL of an image to the workspace</p>
                 <form onSubmit={e => setBackground(e, imgURL, localCanvas)}>
@@ -119,8 +125,11 @@ const Workspace = ( props ) => {
                     Add by File
                 </Button>
             </div>
+            <Button variant="contained" color="secondary" onClick={deleteBackground} style={{ marginTop: '8px' }}>
+                Delete Background
+            </Button>
             <Button onClick={props.postGenerationRequest}>Generate </Button>
-        </div>
+        </Container>
     );
 }
 

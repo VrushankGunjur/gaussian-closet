@@ -38,8 +38,6 @@ const PreviewWorkspace = forwardRef((props, ref) => {
     }
 
     const setBackground = (url, canvas) => {
-
-
         fabric.Image.fromURL(url, function(img) {
             const scalingFactor = canvas.height / img.height;
             img.scale(scalingFactor);
@@ -64,7 +62,8 @@ const PreviewWorkspace = forwardRef((props, ref) => {
             setBackground(url, canvasRef.current);
         },
         clear: () => {
-            canvasRef.current.clear();
+            canvasRef.current.setBackgroundImage(null, canvasRef.current.renderAll.bind(canvasRef.current));
+            canvasRef.current.renderAll();
         }
     }));
 
@@ -121,8 +120,10 @@ const PreviewWorkspace = forwardRef((props, ref) => {
             <Box display="flex" justifyContent="center" alignItems="center" mt={2} mb={2}>
                 <canvas id="previewCanvas" width="350" height="400" style={{ border: '1px solid #000' }}></canvas>
             </Box>
-            <Button variant="contained" color="primary" onClick={handleOpen}>Stage Item</Button>
-
+            <Box display="flex" justifyContent="center" alignItems="center" mb={2}>
+                <Button variant="contained" color="primary" onClick={handleOpen} style={{ marginRight: '8px' }}>Stage Item</Button>
+                <Button variant="contained" color="primary" onClick={() => canvasRef.current.clear()} style={{ marginRight: '8px' }}>Clear Stage</Button>
+            </Box>
             <Dialog open={open} onClose={handleClose}>
                 <DialogTitle>Stage Clothing Item</DialogTitle>
                 <DialogContent>
