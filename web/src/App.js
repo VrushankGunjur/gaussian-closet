@@ -1,4 +1,4 @@
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import './App.css';
 import SegmentCanvas from './components/SegmentCanvas.js';
 import Library from './components/Library.js';
@@ -21,6 +21,7 @@ const App = () => {
     const [clothingItems, setClothingItems] = useState([]);
     const [workspaceCanvas, setWorkspaceCanvas] = useState('');
     const [previewCanvas, setPreviewCanvas] = useState('');
+    const [error, setError] = useState('');
     const previewCanvasRef = useRef(null);
 
     const murmur = require('murmurhash-js');
@@ -113,7 +114,7 @@ const App = () => {
         });
 
         let bg_url = workspaceCanvas.backgroundImage._element.src;
-
+        
         let data = {
             bg_image_url: bg_url,
             fg_image_url: fg_item.url,
@@ -162,21 +163,27 @@ const App = () => {
         workspaceCanvas.freeDrawingBrush.color = 'rgba(255, 0, 0, 0.5)';
     }
 
-    return (
-        <Container className="App" style={{ padding: '16px', fontFamily: 'Arial, sans-serif' }}>
-            <Typography variant="h2" gutterBottom style={{ textAlign: 'center' }}>Gaussian Closet</Typography>
-            <Typography variant="h4" gutterBottom style={{ textAlign: 'center' }}>Brought to you by Nahum, Vrushank, and Alex</Typography>
+    useEffect(() => {
+        if (workspaceCanvas && !workspaceCanvas.backgroundImage) {
+            setError('Please upload a background image.');
+        }
+    }, [workspaceCanvas]);
 
-            <Grid container spacing={3} style={{ height: '100vh' }}>
-                <Grid item xs={12} md={4} style={{ display: 'flex', flexDirection: 'column', gap: '18px' }}>
+    return (
+        <Container className="App" style={{ fontFamily: 'Arial, sans-serif' }}>
+            <Typography variant="h2" gutterBottom style={{ textAlign: 'center', paddingTop: 14 }}>Gaussian Closet</Typography>
+            <Typography variant="h4" gutterBottom style={{ textAlign: 'center', paddingBottom: 25 }}>By Nahum, Vrushank, and Alex</Typography>
+
+            <Grid container spacing={2} style={{ height: '100vh', width: '84vw', paddingRight: 200}}>
+                <Grid item xs={'auto'} md={4} style={{ display: 'flex', flexDirection: 'column', gap: '18px'}}>
                     <Workspace updateCanvas={updateWorkspaceCanvas} postGenerationRequest={postGenerationRequest} />
                 </Grid>
 
-                <Grid item xs={12} md={4} style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+                <Grid item xs={'auto'} md={4} style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
                     <PreviewWorkspace ref={previewCanvasRef} updateCanvas={updatePreviewCanvas} stageClothingItem={stageClothingItem} />
                 </Grid>
 
-                <Grid item xs={12} md={4} style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+                <Grid item xs={'auto'} md={4} style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
                     <Box className="scrollable-column" style={{ padding: '16px', backgroundColor: '#f7f7f7', borderRadius: '8px', boxShadow: '1 1 10px rgba(0, 0, 0, 0.1)' }}>
                         <Library
                             clothingItems={clothingItems}
@@ -188,6 +195,7 @@ const App = () => {
                     </Box>
                 </Grid>
             </Grid>
+            {error && <Typography variant="h6" style={{ color: 'red', textAlign: 'center' }}>{error}</Typography>}
         </Container>
     );
 }

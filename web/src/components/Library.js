@@ -12,6 +12,7 @@ const Library = ({ clothingItems, addClothingItem, removeClothingItem, sendCardC
     const [file, setFile] = useState(null);
     const [clothingType, setClothingType] = useState('');
     const [description, setDescription] = useState('');
+    const [searchQuery, setSearchQuery] = useState('');
 
     const handleFileUpload = (event) => {
         setFile(event.target.files[0]);
@@ -60,6 +61,10 @@ const Library = ({ clothingItems, addClothingItem, removeClothingItem, sendCardC
         displayImageOnPreview(item); // Call the function to display the image
     };
 
+    const filteredItems = clothingItems.filter(item =>
+        item.description.toLowerCase().includes(searchQuery.toLowerCase())
+    );
+
     return (
         <Box>
             <Typography variant="h4" gutterBottom>
@@ -68,10 +73,19 @@ const Library = ({ clothingItems, addClothingItem, removeClothingItem, sendCardC
             <Button variant="contained" color="primary" onClick={handleOpen} style={{ marginBottom: '16px' }}>
                 Add Item
             </Button>
-            {clothingItems.length !== 0 &&
+            <TextField
+                label="Search by description"
+                variant="outlined"
+                fullWidth
+                size="small"
+                value={searchQuery}
+                onChange={e => setSearchQuery(e.target.value)}
+                style={{ marginBottom: '16px'}}
+            />
+            {filteredItems.length !== 0 &&
                 <Paper style={{ maxHeight: '60vh', overflow: 'auto', padding: '16px' }}>
                 <Grid container spacing={4}>
-                    {clothingItems.map((item, index) => (
+                    {filteredItems.map((item, index) => (
                         <Grid item xs={12} sm={6} key={index}>
                             <Card>
                                 <CardMedia
