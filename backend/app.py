@@ -12,7 +12,7 @@ import numpy as np
 import pickle
 import io
 import torch
-from util import *
+from utils import *
 
 mask_map = {}
 request_to_imgs = {}
@@ -62,13 +62,7 @@ def segment():
     torch.cuda.empty_cache()
 
     # this is just a backend mask to test that blurring the mask works
-    test = blur_mask(bg_mask)
-    print(test)
-    print(np.max(test))
 
-    test *= 255
-
-    Image.fromarray(test.astype(np.uint8), mode="L").save(f"./masks/blurred_mask.png") 
 
     # add the bg & fg images to the request to the in-memory map
     request_id = uuid.uuid1()
@@ -99,11 +93,17 @@ def segment():
     # should we be decoding here?
     return { "bg_mask": base64bg.decode("utf-8"), "fg_mask": base64fg.decode("utf-8"), "request_id": request_id }
 
+
+"""
+    Expects a request ID that maps to a bg, fg image pair that should already be cached in the backend
+    Expects a bg_cloth_id and fg_cloth_id that map to masks cached in the backend from previous call to /segment
+    Expects a segment_type that is either "auto" or "partial" indicating user markup on the masks
+"""
 @app.route("/api/generate", methods=["POST"])
 @cross_origin()
 def generate():
     content = request.get_json()
-    bg, fg = request_to_imgs[content["id"]]
+    bg, fg = request_to_imgs[content["request_id"]]
     
     bg_mask = mask_map[content["bg_cloth_id"]]
     fg_mask = mask_map[content["fg_cloth_id"]]
@@ -280,7 +280,7 @@ def in_fill():
 
     # generation = bg_arr + out_arr
 
-    fuzzy_mask = blur_mask(bg_mask)
+    # fuzzy_mask = blur_mask(bg_mask)
     fuzzy_mask = np.stack([fuzzy_mask, fuzzy_mask, fuzzy_mask], axis=2)
 
     generation = fuzzy_mask * out_arr + (np.ones(fuzzy_mask.shape).astype(np.double) - fuzzy_mask) * bg_arr

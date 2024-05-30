@@ -41,8 +41,7 @@ const Workspace = ( props ) => {
             e.preventDefault();
         }
 
-        console.log(url);
-
+        // whenever we change the background, clear the canvas of all elements
         var img = new Image();
 
         img = fabric.Image.fromURL(url, function(img, isError) {
@@ -120,7 +119,7 @@ const Workspace = ( props ) => {
                     Add by File
                 </Button>
             </div>
-            <Button>Generate</Button>
+            <Button onClick={props.postGenerationRequest}>Generate </Button>
         </div>
     );
 }

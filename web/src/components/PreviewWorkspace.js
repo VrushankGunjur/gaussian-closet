@@ -38,6 +38,8 @@ const PreviewWorkspace = forwardRef((props, ref) => {
     }
 
     const setBackground = (url, canvas) => {
+
+
         fabric.Image.fromURL(url, function(img) {
             const scalingFactor = canvas.height / img.height;
             img.scale(scalingFactor);
