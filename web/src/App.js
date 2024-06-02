@@ -10,7 +10,7 @@ import axios from 'axios';
 
 const App = () => {
     const [waitingID, setWaitingID] = useState('');
-    const [backendURL, setBackendURL] = useState('http://34.83.198.73:5000');
+    const [backendURL, setBackendURL] = useState('http://34.125.148.171:5000');
     const [outputImg, setOutputImg] = useState('');
     const [outputImgPresent, setOutputImgPresent] = useState(false);
     const [segmentTarget, setSegmentTarget] = useState('');
@@ -180,7 +180,7 @@ const App = () => {
                 </Grid>
 
                 <Grid item xs={'auto'} md={4} style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
-                    <PreviewWorkspace ref={previewCanvasRef} updateCanvas={updatePreviewCanvas} stageClothingItem={stageClothingItem} />
+                    <PreviewWorkspace ref={previewCanvasRef} updateCanvas={updatePreviewCanvas} postSegmentRequest={postSegmentRequest} />
                 </Grid>
 
                 <Grid item xs={'auto'} md={4} style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>

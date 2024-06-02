@@ -70,9 +70,6 @@ const Library = ({ clothingItems, addClothingItem, removeClothingItem, sendCardC
             <Typography variant="h4" gutterBottom>
                 Clothing Library
             </Typography>
-            <Button variant="contained" color="primary" onClick={handleOpen} style={{ marginBottom: '16px' }}>
-                Add Item
-            </Button>
             <TextField
                 label="Search by description"
                 variant="outlined"
@@ -80,8 +77,12 @@ const Library = ({ clothingItems, addClothingItem, removeClothingItem, sendCardC
                 size="small"
                 value={searchQuery}
                 onChange={e => setSearchQuery(e.target.value)}
-                style={{ marginBottom: '16px'}}
+                style={{ marginBottom: '8px'}}
             />
+            <Button variant="contained" color="primary" onClick={handleOpen} style={{ marginBottom: '16px' }}>
+                Add Item
+            </Button>
+            
             {filteredItems.length !== 0 &&
                 <Paper style={{ maxHeight: '60vh', overflow: 'auto', padding: '16px' }}>
                 <Grid container spacing={4}>

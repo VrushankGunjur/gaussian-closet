@@ -94,12 +94,13 @@ const PreviewWorkspace = forwardRef((props, ref) => {
                 // update the canvas with the new image
                 setBackground(imageData, canvasRef.current);
 
-                props.stageClothingItem({
+                props.postSegmentRequest({
                     fg_cloth_id: uuidv4(),
                     url: imageData,
                     type: clothingType,
                     description: description || clothingType,
                 });
+
                 setImageUrl('');
                 setFile(null);
                 setClothingType('');
