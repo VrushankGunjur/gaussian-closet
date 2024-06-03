@@ -1,6 +1,7 @@
 import React, { useState, useRef, useEffect } from 'react';
 import './App.css';
 import SegmentCanvas from './components/SegmentCanvas.js';
+import OutputCanvas from './components/OutputCanvas';
 import Library from './components/Library.js';
 import Workspace from './components/Workspace.js';
 import PreviewWorkspace from './components/PreviewWorkspace.js';
@@ -8,9 +9,10 @@ import { Container, TextField, Button, Typography, Box, Grid, Paper } from '@mui
 import { fabric } from 'fabric';
 import axios from 'axios';
 
+
 const App = () => {
     const [waitingID, setWaitingID] = useState('');
-    const [backendURL, setBackendURL] = useState('http://34.125.148.171:5000');
+    const [backendURL, setBackendURL] = useState('http://34.47.16.162:5000');
     const [outputImg, setOutputImg] = useState('');
     const [outputImgPresent, setOutputImgPresent] = useState(false);
     const [segmentTarget, setSegmentTarget] = useState('');
@@ -23,6 +25,7 @@ const App = () => {
     const [previewCanvas, setPreviewCanvas] = useState('');
     const [error, setError] = useState('');
     const previewCanvasRef = useRef(null);
+    const outputCanvasRef = useRef(null);
 
     const murmur = require('murmurhash-js');
 
@@ -98,6 +101,10 @@ const App = () => {
             setOutputImg(`data:image/jpeg;base64,${response.data.image}`);
             setOutputImgPresent(true);
             setWaitingID(response.data.id);
+
+            if (outputCanvasRef.current) {
+                outputCanvasRef.current.setOutputImage(`data:image/jpeg;base64,${response.data.image}`);
+            }
         } catch (err) {
             console.error("Error posting data:", err);
             throw err;
@@ -126,7 +133,16 @@ const App = () => {
         try {
             const response = await client.post("/segment", data);
             setCurRequestID(response.data.request_id);
-            displayMask(response.data.bg_mask);
+            displayBgMask(response.data.bg_mask);
+            // displayFgMask(response.data.fg_mask);
+            
+
+            // Pass the mask data to the PreviewWorkspace component
+            if (previewCanvasRef.current) {
+                previewCanvasRef.current.displayMask(response.data.fg_mask);
+            }
+            
+            
             setBgClothID(data.bg_cloth_id);
             setFgClothID(data.fg_cloth_id);
             setCurrSegmentType(data.cloth_type);
@@ -136,7 +152,7 @@ const App = () => {
         }
     }
 
-    const displayMask = (mask) => {
+    const displayBgMask = (mask) => {
         let mask_url = `data:image/jpeg;base64,${mask}`;
         fabric.Image.fromURL(mask_url, function(img) {
             const scalingFactor = workspaceCanvas.height / img.height;
@@ -163,12 +179,6 @@ const App = () => {
         workspaceCanvas.freeDrawingBrush.color = 'rgba(255, 0, 0, 0.5)';
     }
 
-    useEffect(() => {
-        if (workspaceCanvas && !workspaceCanvas.backgroundImage) {
-            setError('Please upload a background image.');
-        }
-    }, [workspaceCanvas]);
-
     return (
         <Container className="App" style={{ fontFamily: 'Arial, sans-serif' }}>
             <Typography variant="h2" gutterBottom style={{ textAlign: 'center', paddingTop: 14 }}>Gaussian Closet</Typography>
@@ -193,6 +203,11 @@ const App = () => {
                             displayImageOnPreview={displayImageOnPreview}
                         />
                     </Box>
+                </Grid>
+            </Grid>
+            <Grid container spacing={2}>
+                <Grid item xs={12} style={{ display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
+                    <OutputCanvas ref={outputCanvasRef} setBackground={(url) => workspaceCanvas.setBackground(url)} />
                 </Grid>
             </Grid>
             {error && <Typography variant="h6" style={{ color: 'red', textAlign: 'center' }}>{error}</Typography>}

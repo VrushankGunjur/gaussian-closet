@@ -1,0 +1,51 @@
+import React, { forwardRef, useImperativeHandle, useRef, useState, useEffect } from 'react';
+import { Container, Button, Box, Typography } from '@mui/material';
+import { fabric } from 'fabric';
+
+
+const OutputCanvas = forwardRef((props, ref) => {
+    const [outputImage, setOutputImage] = useState('');
+    const canvasRef = useRef(null);
+
+    useImperativeHandle(ref, () => ({
+        setOutputImage: (image) => {
+            setOutputImage(image);
+            const canvas = canvasRef.current;
+            fabric.Image.fromURL(image, function(img) {
+                canvas.clear();
+                canvas.setBackgroundImage(img, canvas.renderAll.bind(canvas));
+            });
+        }
+    }));
+
+    const handleAddToBackground = () => {
+        if (outputImage && props.setBackground) {
+            props.setBackground(outputImage);
+        }
+    };
+
+    useEffect(() => {
+        const canvas = new fabric.Canvas('outputCanvas', {
+            height: 400,
+            width: 400,
+        });
+        canvasRef.current = canvas;
+        return () => {
+            canvas.dispose();
+        };
+    }, []);
+
+    return (
+        <Container>
+            <Typography variant="h5" gutterBottom>Output Canvas</Typography>
+            <Box display="flex" justifyContent="center" alignItems="center" mt={2} mb={2}>
+                <canvas id="outputCanvas" width="350" height="400" style={{ border: '1px solid #000' }}></canvas>
+            </Box>
+            <Box display="flex" justifyContent="center" alignItems="center" mb={2}>
+                <Button variant="contained" color="primary" onClick={handleAddToBackground}>Add to Background</Button>
+            </Box>
+        </Container>
+    );
+});
+
+export default OutputCanvas;

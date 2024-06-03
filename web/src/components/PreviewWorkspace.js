@@ -25,17 +25,29 @@ const PreviewWorkspace = forwardRef((props, ref) => {
     const displayMask = (mask) => {
         let mask_url = `data:image/jpeg;base64,${mask}`;
         fabric.Image.fromURL(mask_url, function(img) {
+            const scalingFactor = canvasRef.current.height / img.height;
+
+            img.scale(scalingFactor);
+
+            const left = (canvasRef.current.width - (img.width * scalingFactor)) / 2;
+            const top = (canvasRef.current.height - (img.height * scalingFactor)) / 2;
+            img.set({
+                opacity: 0.4,
+                left: left,
+                top: top, 
+                originX: 'left',
+                originY: 'top'
+            });
+
             canvasRef.current.add(img);
             canvasRef.current.renderAll();
-        }, {
-            opacity: 0.4
         });
 
         canvasRef.current.isDrawingMode = true;
         canvasRef.current.freeDrawingBrush.width = 20;
         canvasRef.current.freeDrawingBrush.color = 'rgba(255, 0, 0, 0.5)';
-        props.updateCanvas(canvasRef.current);
     }
+
 
     const setBackground = (url, canvas) => {
         fabric.Image.fromURL(url, function(img) {
@@ -54,7 +66,6 @@ const PreviewWorkspace = forwardRef((props, ref) => {
         });
 
         canvas.renderAll();
-        props.updateCanvas(canvas);
     }
 
     useImperativeHandle(ref, () => ({
@@ -64,6 +75,9 @@ const PreviewWorkspace = forwardRef((props, ref) => {
         clear: () => {
             canvasRef.current.setBackgroundImage(null, canvasRef.current.renderAll.bind(canvasRef.current));
             canvasRef.current.renderAll();
+        },
+        displayMask: (mask) => {
+            displayMask(mask);
         }
     }));
 
