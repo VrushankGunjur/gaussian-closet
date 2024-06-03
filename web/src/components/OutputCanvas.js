@@ -12,14 +12,14 @@ const OutputCanvas = forwardRef((props, ref) => {
             const canvas = canvasRef.current;
 
             fabric.Image.fromURL(image, function(img) {
+                const scalingFactor = canvas.height / img.height;
                 img.scale(scalingFactor);
                 const left = (canvas.width - (img.width * scalingFactor)) / 2;
                 const top = (canvas.height - (img.height * scalingFactor)) / 2;
 
                 canvas.clear();
                 // TODO: this won't work for images that are too wide
-                const scalingFactor = canvas.height / img.height;
-                img.scale(scalingFactor);
+                
                 canvas.setBackgroundImage(img, canvas.renderAll.bind(canvas), {
                     left: left,
                     top: top,
@@ -48,6 +48,7 @@ const OutputCanvas = forwardRef((props, ref) => {
 
     const handleClearCanvas = () => {
         if (ref.current) {
+            console.log("Clear")
             ref.current.clearCanvas();
         }
     };
@@ -57,6 +58,14 @@ const OutputCanvas = forwardRef((props, ref) => {
             height: 400,
             width: 400,
         });
+
+        
+        // canvas.setBackgroundImage('https://www.mrporter.com/variants/images/1647597292000677/in/w2000_q60.jpg', canvas.renderAll.bind(canvas), {
+        //     scaleX: canvas.width,
+        //     scaleY: canvas.height,
+        // });
+        // setOutputImage('https://www.mrporter.com/variants/images/1647597292000677/in/w2000_q60.jpg');
+
         canvasRef.current = canvas;
         return () => {
             canvas.dispose();
