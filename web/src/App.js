@@ -12,7 +12,7 @@ import axios from 'axios';
 
 const App = () => {
     const [waitingID, setWaitingID] = useState('');
-    const [backendURL, setBackendURL] = useState('http://34.83.193.193:5000');
+    const [backendURL, setBackendURL] = useState('http://34.16.204.56:5000');
     const [outputImg, setOutputImg] = useState('');
     const [outputImgPresent, setOutputImgPresent] = useState(false);
     const [segmentTarget, setSegmentTarget] = useState('');
@@ -207,8 +207,11 @@ const App = () => {
     }; */
 
     const setWorkspaceBackground = (url) => {
+        // console.log(workspaceRef)
+        // workspaceRef.current.setBackground(url);
         if (workspaceRef.current) {
             workspaceRef.current.setBackground(url);
+            // workspaceRef.current = url;
         }
     };
 
