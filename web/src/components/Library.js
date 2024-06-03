@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import {
     Box, TextField, Button, Typography, Paper, Dialog, DialogTitle, DialogContent,
     DialogActions, IconButton, Grid, Card, CardMedia, CardContent
@@ -6,13 +6,40 @@ import {
 import DeleteIcon from '@mui/icons-material/Delete';
 import { v4 as uuidv4 } from 'uuid';
 
-const Library = ({ clothingItems, addClothingItem, removeClothingItem, sendCardContent, displayImageOnPreview }) => {
+const Library = ({ clothingItems, addClothingItem, addClothingItems, removeClothingItem, sendCardContent, displayImageOnPreview }) => {
     const [open, setOpen] = useState(false);
     const [imageUrl, setImageUrl] = useState('');
     const [file, setFile] = useState(null);
     const [clothingType, setClothingType] = useState('');
     const [description, setDescription] = useState('');
     const [searchQuery, setSearchQuery] = useState('');
+
+    useEffect(() => {
+        // Add some clothing to library
+        let l = [
+            {
+                fg_cloth_id: uuidv4(),
+                url: 'https://www.mrporter.com/variants/images/1647597292000677/in/w2000_q60.jpg',
+                type: 'pants',
+                description: 'straght-leg distressed jeans',
+            },
+            {
+                fg_cloth_id: uuidv4(),
+                url: 'https://i.ebayimg.com/images/g/tpEAAOSwPQ9la0oV/s-l1200.webp',
+                type: 'jacket',
+                description: 'field chore jacket',
+            },
+            {
+                fg_cloth_id: uuidv4(),
+                url: 'https://ih1.redbubble.net/image.1210051357.6638/ssrco,slim_fit_t_shirt,mens,fafafa:ca443f4786,front,square_product,600x600.jpg',
+                type: 'shirt',
+                description: 'talking heads t-shirt',
+            }
+        ]
+
+        addClothingItems(l);
+
+    }, []);
 
     const handleFileUpload = (event) => {
         setFile(event.target.files[0]);

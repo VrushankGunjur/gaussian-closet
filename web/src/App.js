@@ -42,6 +42,10 @@ const App = () => {
         setClothingItems([...clothingItems, item]);
     }
 
+    const addClothingItems = (items) => {
+        setClothingItems([...clothingItems, ...items]);
+    }
+
     const stageClothingItem = (item) => {
         // todo: fill this in. it must 1) add the item to the preview canvas, 2) send the item to the backend for segmentation
     }
@@ -202,6 +206,7 @@ const App = () => {
                         <Library
                             clothingItems={clothingItems}
                             addClothingItem={addClothingItem}
+                            addClothingItems={addClothingItems}
                             removeClothingItem={removeClothingItem}
                             sendCardContent={postSegmentRequest}
                             displayImageOnPreview={displayImageOnPreview}
