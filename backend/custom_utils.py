@@ -4,6 +4,7 @@ from PIL import Image, ImageDraw
 from svgpathtools import Path, parse_path, svgstr2paths
 import numpy as np 
 import cv2 
+from skimage.transform import resize
 
 def blur_mask(mask):
     kernel = gaussian_kernel(57, sigma=57);
@@ -87,18 +88,20 @@ def gaussian_filter(l, sigma):
 
 
 def blur_mask(mask):
-    kernel = gaussian_filter(57, sigma=57)
+    kernel = gaussian_filter(57, sigma=1)
     new_mask = mask.copy().astype(np.double)
     blur_mask = cv2.filter2D(new_mask, -1, kernel)
     return blur_mask
 
 def upscale_mask(mask, new_dim):
-    ox, oy = mask.shape
-    new_mask = np.zeros(new_dim, dtype=bool)
+    # ox, oy = mask.shape
+    # new_mask = np.zeros(new_dim, dtype=bool)
+
+    new_mask = resize(mask.astype(float), new_dim, order=0, mode='reflect', anti_aliasing=False).astype(bool)
     
-    for i in range(new_dim[0]):
-        for j in range(new_dim[1]):
-            if (mask[i * ox // new_dim[0]][j * oy // new_dim[1]]):
-                new_mask[i][j] = True
+    # for i in range(new_dim[0]):
+    #     for j in range(new_dim[1]):
+    #         if (mask[i * ox // new_dim[0]][j * oy // new_dim[1]]):
+    #             new_mask[i][j] = True
 
     return new_mask

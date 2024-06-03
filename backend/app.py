@@ -172,7 +172,7 @@ def generate():
         if (content['bg_path'] != "NONE"): 
             print('adding user markup to background mask')
             bg_mask_user = np.array(svg_to_mask(content['bg_path'], bg.size, "bg_mask"))
-            bg_mask_user = upscale_mask(bg_mask_user, bg.size)
+            bg_mask_user = upscale_mask(bg_mask_user[:WEB_X, :WEB_Y], (bg.size[1], bg.size[0]))
             Image.fromarray(bg_mask_user.astype(np.uint8)*255).save(f"./masks/USER_bg_mask-13.jpg")
             bg_mask = np.logical_or(bg_mask, bg_mask_user)
             Image.fromarray(bg_mask.astype(np.uint8)*255).save(f"./masks/UNIONED-13.jpg")
@@ -181,7 +181,7 @@ def generate():
         if (content['fg_path'] != "NONE"):  
             print('adding user markup to foreground mask')
             fg_mask_user = np.array(svg_to_mask(content['fg_path'], fg.size, "fg_mask"))
-            fg_mask_user = upscale_mask(fg_mask_user, fg.size)
+            fg_mask_user = upscale_mask(fg_mask_user[:WEB_X, :WEB_Y], (fg.size[1], fg.size[0]))
             fg_mask = np.logical_or(fg_mask, fg_mask_user)
             # fg_mask = union_mask(fg_mask, fg_mask_user)
 
