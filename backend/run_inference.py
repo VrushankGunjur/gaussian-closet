@@ -25,10 +25,10 @@ config = OmegaConf.load('./configs/inference.yaml')
 model_ckpt =  config.pretrained_model
 model_config = config.config_file
 
-model = create_model(model_config ).cpu()
-model.load_state_dict(load_state_dict(model_ckpt, location='cuda'))
-model = model.cuda()
-ddim_sampler = DDIMSampler(model)
+# model = create_model(model_config ).cpu()
+# model.load_state_dict(load_state_dict(model_ckpt, location='cuda'))
+# model = model.cuda()
+# ddim_sampler = DDIMSampler(model)
 
 
 
@@ -234,6 +234,12 @@ def crop_back( pred, tar_image,  extra_sizes, tar_box_yyxx_crop):
 
 
 def inference_single_image(ref_image, ref_mask, tar_image, tar_mask, guidance_scale = 5.0):
+    ### LOADING WEIGHTS INTO GPU
+    model = create_model(model_config ).cpu()
+    model.load_state_dict(load_state_dict(model_ckpt, location='cuda'))
+    model = model.cuda()
+    ddim_sampler = DDIMSampler(model)
+
     raw_background = tar_image.copy()
     item = process_pairs(ref_image, ref_mask, tar_image, tar_mask, enable_shape_control = True)
 
@@ -289,6 +295,13 @@ def inference_single_image(ref_image, ref_mask, tar_image, tar_mask, guidance_sc
     # keep background unchanged
     y1,y2,x1,x2 = item['tar_box_yyxx']
     raw_background[y1:y2, x1:x2, :] = tar_image[y1:y2, x1:x2, :]
+
+    ### DEALLOCATE WEIGHTS FROM GPU MEMORY
+
+    del model
+    del ddim_sampler
+    torch.cuda.empty_cache()
+
     return raw_background
     # raw_background = tar_image.copy()
     # item = process_pairs(ref_image, ref_mask, tar_image, tar_mask, enable_shape_control=True)
