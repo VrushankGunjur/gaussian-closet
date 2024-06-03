@@ -200,6 +200,7 @@ const App = () => {
         // console.log(workspaceRef)
         // workspaceRef.current.setBackground(url);
         if (workspaceRef.current) {
+            workspaceRef.current.clear();
             workspaceRef.current.setBackground(url);
             // workspaceRef.current = url;
         }
