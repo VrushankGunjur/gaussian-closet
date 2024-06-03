@@ -74,17 +74,17 @@ def widen_mask(mask, iterations=5):
     new_mask = cv2.dilate(mask.astype(np.uint8), kernel, iterations=iterations)
     return new_mask.astype(bool)
 
-def gaussian_filter(kernel_size, sigma=1, muu=0):
-    x, y = np.meshgrid(np.linspace(-1, 1, kernel_size),
-                       np.linspace(-1, 1, kernel_size))
-    dst = np.sqrt(x**2+y**2)
- 
-    normal = 1/(2, 0 * np.pi * sigma**2)
- 
-    gauss = np.exp(-((dst-muu)**2 / (2.0 * sigma**2))) * normal
-    
-    kernel /= np.sum(kernel)
-    return kernel
+# Source
+# https://stackoverflow.com/questions/29731726/how-to-calculate-a-gaussian-kernel-matrix-efficiently-in-numpy
+def gaussian_filter(l, sigma):
+    """\
+    creates gaussian kernel with side length `l` and a sigma of `sig`
+    """
+    ax = np.linspace(-(l - 1) / 2., (l - 1) / 2., l)
+    gauss = np.exp(-0.5 * np.square(ax) / np.square(sigma))
+    kernel = np.outer(gauss, gauss)
+    return kernel / np.sum(kernel)
+
 
 def blur_mask(mask):
     kernel = gaussian_filter(57, sigma=57)
