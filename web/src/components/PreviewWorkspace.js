@@ -137,7 +137,7 @@ const PreviewWorkspace = forwardRef((props, ref) => {
             </Box>
             <Box display="flex" justifyContent="center" alignItems="center" mb={2}>
                 <Button variant="contained" color="primary" onClick={handleOpen} style={{ marginRight: '8px' }}>Stage Item</Button>
-                <Button variant="contained" color="primary" onClick={() => canvasRef.current.clear()} style={{ marginRight: '8px' }}>Clear Stage</Button>
+                <Button variant="contained" color="error" onClick={() => canvasRef.current.clear()} style={{ marginRight: '8px' }}>Clear Stage</Button>
             </Box>
             <Dialog open={open} onClose={handleClose}>
                 <DialogTitle>Stage Clothing Item</DialogTitle>

@@ -1,18 +1,18 @@
-import React, { useState, useRef, useEffect } from 'react';
+import React, { useState, useRef } from 'react';
 import './App.css';
 import SegmentCanvas from './components/SegmentCanvas.js';
 import OutputCanvas from './components/OutputCanvas';
 import Library from './components/Library.js';
 import Workspace from './components/Workspace.js';
 import PreviewWorkspace from './components/PreviewWorkspace.js';
-import { Container, TextField, Button, Typography, Box, Grid, Paper } from '@mui/material';
+import LoadingScreen from './components/LoadingScreen';
+import { Container, Typography, Grid, Box } from '@mui/material';
 import { fabric } from 'fabric';
 import axios from 'axios';
 
-
 const App = () => {
     const [waitingID, setWaitingID] = useState('');
-    const [backendURL, setBackendURL] = useState('http://34.47.16.162:5000');
+    const [backendURL, setBackendURL] = useState('http://34.83.193.193:5000');
     const [outputImg, setOutputImg] = useState('');
     const [outputImgPresent, setOutputImgPresent] = useState(false);
     const [segmentTarget, setSegmentTarget] = useState('');
@@ -23,6 +23,7 @@ const App = () => {
     const [clothingItems, setClothingItems] = useState([]);
     const [workspaceCanvas, setWorkspaceCanvas] = useState('');
     const [previewCanvas, setPreviewCanvas] = useState('');
+    const [loading, setLoading] = useState(false);
     const [error, setError] = useState('');
     const previewCanvasRef = useRef(null);
     const outputCanvasRef = useRef(null);
@@ -70,7 +71,7 @@ const App = () => {
                 "Content-Type": "application/json",
                 "Access-Control-Allow-Origin": backendURL
             }
-        }); 
+        });
 
         let urls = [];
         let coords = [];
@@ -84,7 +85,7 @@ const App = () => {
                 coords.push(object.lineCoords);
             }
         });
-   
+
         paths.push("NONE"); // to prevent index OOB
         
         let data = {
@@ -105,6 +106,7 @@ const App = () => {
             if (outputCanvasRef.current) {
                 outputCanvasRef.current.setOutputImage(`data:image/jpeg;base64,${response.data.image}`);
             }
+            
         } catch (err) {
             console.error("Error posting data:", err);
             throw err;
@@ -112,6 +114,7 @@ const App = () => {
     }
 
     const postSegmentRequest = async (fg_item) => {
+        setLoading(true);
         const client = axios.create({
             baseURL: backendURL + "/api",
             headers: {
@@ -136,19 +139,19 @@ const App = () => {
             displayBgMask(response.data.bg_mask);
             // displayFgMask(response.data.fg_mask);
             
-
             // Pass the mask data to the PreviewWorkspace component
             if (previewCanvasRef.current) {
                 previewCanvasRef.current.displayMask(response.data.fg_mask);
             }
-            
             
             setBgClothID(data.bg_cloth_id);
             setFgClothID(data.fg_cloth_id);
             setCurrSegmentType(data.cloth_type);
         } catch (err) {
             console.error("Error with segmentation API call:", err);
-            throw err;
+            setError('Error with segmentation API call');
+        } finally {
+            setLoading(false);
         }
     }
 
@@ -181,6 +184,7 @@ const App = () => {
 
     return (
         <Container className="App" style={{ fontFamily: 'Arial, sans-serif' }}>
+            {loading && <LoadingScreen />}
             <Typography variant="h2" gutterBottom style={{ textAlign: 'center', paddingTop: 14 }}>Gaussian Closet</Typography>
             <Typography variant="h4" gutterBottom style={{ textAlign: 'center', paddingBottom: 25 }}>By Nahum, Vrushank, and Alex</Typography>
 
@@ -206,7 +210,7 @@ const App = () => {
                 </Grid>
             </Grid>
             <Grid container spacing={2}>
-                <Grid item xs={12} style={{ display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
+                <Grid item xs={12} style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', marginTop: -500, paddingLeft: -40 }}>
                     <OutputCanvas ref={outputCanvasRef} setBackground={(url) => workspaceCanvas.setBackground(url)} />
                 </Grid>
             </Grid>

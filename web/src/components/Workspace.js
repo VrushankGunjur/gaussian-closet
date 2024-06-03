@@ -115,7 +115,7 @@ const Workspace = forwardRef((props, ref) => {
                 <Button variant="contained" color='error' onClick={() => ref.current.clear()} style={{ marginRight: '8px'}}>Clear Workspace</Button>
             </Box>
             <Button variant="contained" color='success' style={{ width: '225%' }} onClick={props.postGenerationRequest}> Generate </Button> 
-
+            
 
             <Dialog open={open} onClose={handleClose}>
                 <DialogTitle>Set Background Image</DialogTitle>

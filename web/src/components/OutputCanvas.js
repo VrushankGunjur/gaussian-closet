@@ -2,7 +2,6 @@ import React, { forwardRef, useImperativeHandle, useRef, useState, useEffect } f
 import { Container, Button, Box, Typography } from '@mui/material';
 import { fabric } from 'fabric';
 
-
 const OutputCanvas = forwardRef((props, ref) => {
     const [outputImage, setOutputImage] = useState('');
     const canvasRef = useRef(null);
@@ -15,12 +14,23 @@ const OutputCanvas = forwardRef((props, ref) => {
                 canvas.clear();
                 canvas.setBackgroundImage(img, canvas.renderAll.bind(canvas));
             });
+        },
+        clearCanvas: () => {
+            const canvas = canvasRef.current;
+            canvas.clear();
+            canvas.renderAll();
         }
     }));
 
     const handleAddToBackground = () => {
         if (outputImage && props.setBackground) {
             props.setBackground(outputImage);
+        }
+    };
+
+    const handleClearCanvas = () => {
+        if (ref.current) {
+            ref.current.clearCanvas();
         }
     };
 
@@ -43,6 +53,7 @@ const OutputCanvas = forwardRef((props, ref) => {
             </Box>
             <Box display="flex" justifyContent="center" alignItems="center" mb={2}>
                 <Button variant="contained" color="primary" onClick={handleAddToBackground}>Add to Background</Button>
+                <Button variant="contained" color="error" onClick={handleClearCanvas} style={{ marginLeft: '10px' }}>Clear Canvas</Button>
             </Box>
         </Container>
     );
