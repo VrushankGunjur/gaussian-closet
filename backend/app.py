@@ -12,9 +12,16 @@ import numpy as np
 import pickle
 import io
 import torch
-from util import *
+from custom_utils import *
 import time
 import cv2
+
+# Dimensions of the PreviewWorkspace canvas in the UI
+# Needed for projecting 
+WEB_X = 400
+WEB_Y = 400
+
+G_BLUR = True
 
 mask_map = {}
 request_to_imgs = {}
@@ -165,6 +172,7 @@ def generate():
         if (content['bg_path'] != "NONE"): 
             print('adding user markup to background mask')
             bg_mask_user = np.array(svg_to_mask(content['bg_path'], bg.size, "bg_mask"))
+            bg_mask_user = upscale_mask(bg_mask_user, bg.size)
             Image.fromarray(bg_mask_user.astype(np.uint8)*255).save(f"./masks/USER_bg_mask-13.jpg")
             bg_mask = np.logical_or(bg_mask, bg_mask_user)
             Image.fromarray(bg_mask.astype(np.uint8)*255).save(f"./masks/UNIONED-13.jpg")
@@ -173,6 +181,7 @@ def generate():
         if (content['fg_path'] != "NONE"):  
             print('adding user markup to foreground mask')
             fg_mask_user = np.array(svg_to_mask(content['fg_path'], fg.size, "fg_mask"))
+            fg_mask_user = upscale_mask(fg_mask_user, fg.size)
             fg_mask = np.logical_or(fg_mask, fg_mask_user)
             # fg_mask = union_mask(fg_mask, fg_mask_user)
 
@@ -200,14 +209,23 @@ def generate():
 
     # mask out all of the generation that we don't want
     bg_mask = bg_mask.astype(bool)
-    out_arr[~bg_mask] = 0
     #Image.fromarray(out_arr.astype(np.uint8)).save(f"./intermediates/masked_generation_{id}.jpg")
 
     # mask out the part of the original image we want to replace
     bg_arr = np.array(bg)
-    bg_arr[bg_mask] = 0
     #Image.fromarray(bg_arr.astype(np.uint8)).save(f"./intermediates/keep_from_og_{id}.jpg")
-    generation = bg_arr + out_arr
+
+    # Do Gaussian blur for generating final mask
+    # Else do simple copy paste
+    if G_BLUR:
+        fuzzy_mask = blur_mask(bg_mask)
+        fuzzy_mask = np.stack([fuzzy_mask, fuzzy_mask, fuzzy_mask], axis=2)
+        generation = fuzzy_mask * out_arr + (np.ones(fuzzy_mask.shape).astype(np.double) - fuzzy_mask) * bg_arr
+    else:
+        out_arr[~bg_mask] = 0
+        bg_arr[bg_mask] = 0
+        generation = bg_arr + out_arr
+
     gen = Image.fromarray(generation.astype(np.uint8))
     gen.save(f"./generations/{id}.jpg")
 
