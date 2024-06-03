@@ -7,10 +7,18 @@ const Workspace = forwardRef((props, ref) => {
     const [localCanvas, setLocalCanvas] = useState(null);
     const [imgURL, setImageUrl] = useState('');
     const [open, setOpen] = useState(false);
+    const canvasRef = useRef(null);
+    
 
     useEffect(() => {
         const canvas = initCanvas();
         setLocalCanvas(canvas);
+        // canvasRef.current = canvas;
+
+        return () => {
+            canvas.dispose();
+        };
+
     }, []);
 
     const initCanvas = () => (
@@ -18,7 +26,8 @@ const Workspace = forwardRef((props, ref) => {
             height: 400,
             width: 400,
         })
-    );
+    )
+
 
     const setBackground = (url, canvas) => {
         fabric.Image.fromURL(url, function(img) {
@@ -28,6 +37,7 @@ const Workspace = forwardRef((props, ref) => {
             const left = (canvas.width - (img.width * scalingFactor)) / 2;
             const top = (canvas.height - (img.height * scalingFactor)) / 2;
 
+            console.log(canvas)
             canvas.setBackgroundImage(img, canvas.renderAll.bind(canvas), {
                 left: left,
                 top: top,
@@ -37,11 +47,13 @@ const Workspace = forwardRef((props, ref) => {
 
             canvas.renderAll();
             props.updateCanvas(canvas);
+            
         });
     };
 
     useImperativeHandle(ref, () => ({
         setBackground: (url) => {
+            console.log("impertive triggered");
             setBackground(url, localCanvas);
         },
         clear: () => {
@@ -71,6 +83,7 @@ const Workspace = forwardRef((props, ref) => {
                 // update the canvas with the new image
                 setBackground(imageData, localCanvas);
 
+
                 setImageUrl('');
                 setFile(null);
                 setOpen(false);
@@ -87,7 +100,7 @@ const Workspace = forwardRef((props, ref) => {
         <Container>
             <Typography variant="h5" gutterBottom>Workspace</Typography>
             <Box display="flex" justifyContent="center" alignItems="center" mt={2} mb={2}>
-                <canvas id="workspaceCanvas" width="350" height="400" style={{ border: '1px solid #000' }}></canvas>
+                <canvas ref={canvasRef} id="workspaceCanvas" width="350" height="400" style={{ border: '1px solid #000' }}></canvas>
             </Box>
             <Box display="flex" justifyContent="center" alignItems="center" mb={2}>
                 <Button variant="contained" color="primary" onClick={handleOpen} style={{ marginRight: '8px' }}>Set Background Image</Button>
