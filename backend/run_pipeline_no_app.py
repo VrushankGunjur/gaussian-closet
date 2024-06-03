@@ -11,7 +11,7 @@ import pickle
 import io
 import torch
 import sys
-from util import * 
+from custom_utils import * 
 
 def sample_path(path):
     points = []
