@@ -1,8 +1,7 @@
-// LoadingScreen.js
 import React from 'react';
 import { Box, CircularProgress, Typography } from '@mui/material';
 
-const LoadingScreen = () => {
+const LoadingScreen = ({ message }) => {
     return (
         <Box 
             display="flex" 
@@ -18,7 +17,9 @@ const LoadingScreen = () => {
             zIndex={1000}
         >
             <CircularProgress />
-            <Typography variant="h6" style={{ marginTop: '16px' }}>Segmenting objects</Typography>
+            <Typography variant="h6" style={{ marginTop: '16px' }}>
+                {message}
+            </Typography>
         </Box>
     );
 }
