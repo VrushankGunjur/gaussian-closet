@@ -1,15 +1,12 @@
 import React, { useState, useEffect, useRef, useImperativeHandle, forwardRef } from 'react';
 import { Container, TextField, Button, Typography, Box, Dialog, DialogTitle, DialogContent, DialogActions } from '@mui/material';
 import { fabric } from 'fabric';
-import { v4 as uuidv4 } from 'uuid';
 
 const Workspace = forwardRef((props, ref) => {
     const [file, setFile] = useState(null);
     const [localCanvas, setLocalCanvas] = useState(null);
     const [imgURL, setImageUrl] = useState('');
     const [open, setOpen] = useState(false);
-    const [clothingType, setClothingType] = useState('');
-    const [description, setDescription] = useState('');
 
     useEffect(() => {
         const canvas = initCanvas();
@@ -37,25 +34,10 @@ const Workspace = forwardRef((props, ref) => {
                 originX: 'left',
                 originY: 'top'
             });
+
+            canvas.renderAll();
+            props.updateCanvas(canvas);
         });
-
-        canvas.renderAll();
-        props.updateCanvas(canvas);
-    };
-
-    const displayMask = (mask) => {
-        let mask_url = `data:image/jpeg;base64,${mask}`;
-        fabric.Image.fromURL(mask_url, function(img) {
-            localCanvas.add(img);
-            localCanvas.renderAll();
-        }, {
-            opacity: 0.4
-        });
-
-        localCanvas.isDrawingMode = true;
-        localCanvas.freeDrawingBrush.width = 20;
-        localCanvas.freeDrawingBrush.color = 'rgba(255, 0, 0, 0.5)';
-        props.updateCanvas(localCanvas);
     };
 
     useImperativeHandle(ref, () => ({
@@ -65,8 +47,7 @@ const Workspace = forwardRef((props, ref) => {
         clear: () => {
             localCanvas.clear();
             localCanvas.renderAll();
-        },
-
+        }
     }));
 
     const handleFileUpload = (event) => {
@@ -92,8 +73,6 @@ const Workspace = forwardRef((props, ref) => {
 
                 setImageUrl('');
                 setFile(null);
-                setClothingType('');
-                setDescription('');
                 setOpen(false);
             };
             if (file) {
@@ -114,8 +93,7 @@ const Workspace = forwardRef((props, ref) => {
                 <Button variant="contained" color="primary" onClick={handleOpen} style={{ marginRight: '8px' }}>Set Background Image</Button>
                 <Button variant="contained" color='error' onClick={() => ref.current.clear()} style={{ marginRight: '8px'}}>Clear Workspace</Button>
             </Box>
-            <Button variant="contained" color='success' style={{ width: '225%' }} onClick={props.postGenerationRequest}> Generate </Button> 
-            
+            <Button variant="contained" color='success' style={{ width: '225%' }} onClick={props.postGenerationRequest}> Generate </Button>
 
             <Dialog open={open} onClose={handleClose}>
                 <DialogTitle>Set Background Image</DialogTitle>
@@ -144,7 +122,7 @@ const Workspace = forwardRef((props, ref) => {
                         Cancel
                     </Button>
                     <Button onClick={stageItem} color="primary">
-                    Set Background Image
+                        Set Background Image
                     </Button>
                 </DialogActions>
             </Dialog>

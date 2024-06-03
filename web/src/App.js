@@ -26,6 +26,7 @@ const App = () => {
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState('');
     const previewCanvasRef = useRef(null);
+    const workspaceRef = useRef(null);
     const outputCanvasRef = useRef(null);
 
     const murmur = require('murmurhash-js');
@@ -185,6 +186,33 @@ const App = () => {
         workspaceCanvas.freeDrawingBrush.width = 20;
         workspaceCanvas.freeDrawingBrush.color = 'rgba(255, 0, 0, 0.5)';
     }
+    /*
+    const setWorkspaceBackground = (url) => {
+        fabric.Image.fromURL(url, function(img) {
+            const scalingFactor = workspaceCanvas.height / img.height;
+            img.scale(scalingFactor);
+            const left = (workspaceCanvas.width - (img.width * scalingFactor)) / 2;
+            const top = (workspaceCanvas.height - (img.height * scalingFactor)) / 2;
+
+            workspaceCanvas.setBackgroundImage(img, workspaceCanvas.renderAll.bind(workspaceCanvas), {
+                left: left,
+                top: top,
+                originX: 'left',
+                originY: 'top'
+            });
+            
+            workspaceCanvas.add(img);
+            workspaceCanvas.renderAll();
+        });
+    }; */
+
+    const setWorkspaceBackground = (url) => {
+        if (workspaceRef.current) {
+            workspaceRef.current.setBackground(url);
+        }
+    };
+
+    
 
     return (
         <Container className="App" style={{ fontFamily: 'Arial, sans-serif' }}>
@@ -194,7 +222,7 @@ const App = () => {
 
             <Grid container spacing={2} style={{ height: '100vh', width: '84vw', paddingRight: 200}}>
                 <Grid item xs={'auto'} md={4} style={{ display: 'flex', flexDirection: 'column', gap: '18px'}}>
-                    <Workspace updateCanvas={updateWorkspaceCanvas} postGenerationRequest={postGenerationRequest} />
+                    <Workspace ref={workspaceRef} updateCanvas={updateWorkspaceCanvas} postGenerationRequest={postGenerationRequest} />
                 </Grid>
 
                 <Grid item xs={'auto'} md={4} style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
@@ -216,7 +244,7 @@ const App = () => {
             </Grid>
             <Grid container spacing={2}>
                 <Grid item xs={12} style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', marginTop: -500, paddingLeft: -40 }}>
-                    <OutputCanvas ref={outputCanvasRef} setBackground={(url) => workspaceCanvas.setBackground(url)} />
+                    <OutputCanvas ref={outputCanvasRef} setBackground={setWorkspaceBackground} updateCanvas={updateWorkspaceCanvas} />
                 </Grid>
             </Grid>
             {error && <Typography variant="h6" style={{ color: 'red', textAlign: 'center' }}>{error}</Typography>}
