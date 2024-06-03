@@ -73,3 +73,32 @@ def widen_mask(mask, iterations=5):
     kernel = np.ones((3,3), np.uint8)  # Define a 3x3 kernel
     new_mask = cv2.dilate(mask.astype(np.uint8), kernel, iterations=iterations)
     return new_mask.astype(bool)
+
+# Source
+# https://stackoverflow.com/questions/29731726/how-to-calculate-a-gaussian-kernel-matrix-efficiently-in-numpy
+def gaussian_filter(l, sigma):
+    """\
+    creates gaussian kernel with side length `l` and a sigma of `sig`
+    """
+    ax = np.linspace(-(l - 1) / 2., (l - 1) / 2., l)
+    gauss = np.exp(-0.5 * np.square(ax) / np.square(sigma))
+    kernel = np.outer(gauss, gauss)
+    return kernel / np.sum(kernel)
+
+
+def blur_mask(mask):
+    kernel = gaussian_filter(57, sigma=57)
+    new_mask = mask.copy().astype(np.double)
+    blur_mask = cv2.filter2D(new_mask, -1, kernel)
+    return blur_mask
+
+def upscale_mask(mask, new_dim):
+    ox, oy = mask.shape
+    new_mask = np.zeros(new_dim, dtype=bool)
+    
+    for i in range(new_dim[0]):
+        for j in range(new_dim[1]):
+            if (mask[i * ox // new_dim[0]][j * oy // new_dim[1]]):
+                new_mask[i][j] = True
+
+    return new_mask
