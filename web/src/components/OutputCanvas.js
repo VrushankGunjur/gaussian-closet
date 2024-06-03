@@ -12,6 +12,9 @@ const OutputCanvas = forwardRef((props, ref) => {
             const canvas = canvasRef.current;
             fabric.Image.fromURL(image, function(img) {
                 canvas.clear();
+                // TODO: this won't work for images that are too wide
+                const scalingFactor = canvas.height / img.height;
+                img.scale(scalingFactor);
                 canvas.setBackgroundImage(img, canvas.renderAll.bind(canvas));
             });
         },
