@@ -13,12 +13,23 @@ const Workspace = forwardRef((props, ref) => {
     useEffect(() => {
         const canvas = initCanvas();
         setLocalCanvas(canvas);
-        // canvasRef.current = canvas;
+        canvasRef.current = canvas;
+
+        canvas.on("mouse:down", function (e) {
+            canvas.getObjects().forEach((obj) => {
+                if ("path" in obj) {
+                    canvas.remove(obj);
+                }
+            });
+            // canvas.clear();
+        });
 
         return () => {
+            // canvas.off("mouse:down", function (e) {
+            //     canvas.clear();
+            // })
             canvas.dispose();
         };
-
     }, []);
 
     const initCanvas = () => (
@@ -105,6 +116,7 @@ const Workspace = forwardRef((props, ref) => {
             <Box display="flex" justifyContent="center" alignItems="center" mb={2}>
                 <Button variant="contained" color="primary" onClick={handleOpen} style={{ marginRight: '8px' }}>Set Background Image</Button>
                 <Button variant="contained" color='error' onClick={() => ref.current.clear()} style={{ marginRight: '8px'}}>Clear Workspace</Button>
+                {/* <Button variant="contained" color='warning' onClick={() => ref.current.setBackground('')} style={{ marginRight: '8px'}}>Clear Mask</Button> */}
             </Box>
             <Button variant="contained" color='success' style={{ width: '225%' }} onClick={props.postGenerationRequest}> Generate </Button>
 

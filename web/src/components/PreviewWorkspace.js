@@ -16,6 +16,16 @@ const PreviewWorkspace = forwardRef((props, ref) => {
             height: 400,
             width: 400,
         });
+
+        canvas.on("mouse:down", function (e) {
+            canvas.getObjects().forEach((obj) => {
+                if ("path" in obj) {
+                    canvas.remove(obj);
+                }
+            });
+            // canvas.clear();
+        });
+
         canvasRef.current = canvas;
         return () => {
             canvas.dispose();
@@ -44,8 +54,8 @@ const PreviewWorkspace = forwardRef((props, ref) => {
         });
 
         canvasRef.current.isDrawingMode = true;
-        canvasRef.current.freeDrawingBrush.width = 20;
-        canvasRef.current.freeDrawingBrush.color = 'rgba(255, 0, 0, 0.5)';
+        canvasRef.current.freeDrawingBrush.width = 10;
+        canvasRef.current.freeDrawingBrush.color = 'rgba(255, 255, 255, 0.5)';
     }
 
 

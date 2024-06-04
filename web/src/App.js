@@ -192,8 +192,8 @@ const App = () => {
         });
 
         workspaceCanvas.isDrawingMode = true;
-        workspaceCanvas.freeDrawingBrush.width = 20;
-        workspaceCanvas.freeDrawingBrush.color = 'rgba(255, 0, 0, 0.5)';
+        workspaceCanvas.freeDrawingBrush.width = 10;
+        workspaceCanvas.freeDrawingBrush.color = 'rgba(255, 255, 255, 0.5)';
     }
 
     const setWorkspaceBackground = (url) => {

@@ -49,8 +49,8 @@ const SegmentCanvas = (props) => {
         isDrawingMode: true 
     })
 
-    out.freeDrawingBrush.width = 20;
-    out.freeDrawingBrush.color = "rgba(255,0,0,.5)";
+    out.freeDrawingBrush.width = 10;
+    out.freeDrawingBrush.color = "rgba(255,255,255,.5)";
     props.updateCanvas(out);
 
       return out;
