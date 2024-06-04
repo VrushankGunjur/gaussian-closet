@@ -7,15 +7,15 @@ import Workspace from './components/Workspace.js';
 import PreviewWorkspace from './components/PreviewWorkspace.js';
 import LoadingScreen from './components/LoadingScreen';
 import { Container, Typography, Grid, Box } from '@mui/material';
-import { fabric } from 'fabric';
 import axios from 'axios';
+import { fabric } from 'fabric';
 
 const App = () => {
     const [waitingID, setWaitingID] = useState('');
     const [backendURL, setBackendURL] = useState('http://34.16.204.56:5000');
     const [outputImg, setOutputImg] = useState('');
     const [outputImgPresent, setOutputImgPresent] = useState(false);
-    const [segmentTarget, setSegmentTarget] = useState('');
+    const [loadingMessage, setLoadingMessage] = useState('');
     const [bg_cloth_id, setBgClothID] = useState('');
     const [fg_cloth_id, setFgClothID] = useState('');
     const [cur_request_id, setCurRequestID] = useState('');
@@ -70,6 +70,10 @@ const App = () => {
     }
 
     const postGenerationRequest = async () => {
+        // set the loading screen
+        setLoading(true);
+        setLoadingMessage('Generating output image...');
+
         const client = axios.create({
             baseURL: backendURL + "/api",
             headers: {
@@ -115,11 +119,15 @@ const App = () => {
         } catch (err) {
             console.error("Error posting data:", err);
             throw err;
+        } finally {
+            setLoading(false);
+            setLoadingMessage('');
         }
     }
 
     const postSegmentRequest = async (fg_item) => {
         setLoading(true);
+        setLoadingMessage('Segmenting Clothing Item Masks...');
         const client = axios.create({
             baseURL: backendURL + "/api",
             headers: {
@@ -157,6 +165,7 @@ const App = () => {
             setError('Error with segmentation API call');
         } finally {
             setLoading(false);
+            setLoadingMessage('');
         }
     }
 
@@ -183,43 +192,23 @@ const App = () => {
         });
 
         workspaceCanvas.isDrawingMode = true;
-        workspaceCanvas.freeDrawingBrush.width = 20;
-        workspaceCanvas.freeDrawingBrush.color = 'rgba(255, 0, 0, 0.5)';
+        workspaceCanvas.freeDrawingBrush.width = 10;
+        workspaceCanvas.freeDrawingBrush.color = 'rgba(255, 255, 255, 0.5)';
     }
-    /*
-    const setWorkspaceBackground = (url) => {
-        fabric.Image.fromURL(url, function(img) {
-            const scalingFactor = workspaceCanvas.height / img.height;
-            img.scale(scalingFactor);
-            const left = (workspaceCanvas.width - (img.width * scalingFactor)) / 2;
-            const top = (workspaceCanvas.height - (img.height * scalingFactor)) / 2;
-
-            workspaceCanvas.setBackgroundImage(img, workspaceCanvas.renderAll.bind(workspaceCanvas), {
-                left: left,
-                top: top,
-                originX: 'left',
-                originY: 'top'
-            });
-            
-            workspaceCanvas.add(img);
-            workspaceCanvas.renderAll();
-        });
-    }; */
 
     const setWorkspaceBackground = (url) => {
         // console.log(workspaceRef)
         // workspaceRef.current.setBackground(url);
         if (workspaceRef.current) {
+            workspaceRef.current.clear();
             workspaceRef.current.setBackground(url);
             // workspaceRef.current = url;
         }
     };
 
-    
-
     return (
         <Container className="App" style={{ fontFamily: 'Arial, sans-serif' }}>
-            {loading && <LoadingScreen />}
+             {loading && <LoadingScreen message={loadingMessage} />}
             <Typography variant="h2" gutterBottom style={{ textAlign: 'center', paddingTop: 14 }}>Gaussian Closet</Typography>
             <Typography variant="h4" gutterBottom style={{ textAlign: 'center', paddingBottom: 25 }}>By Nahum, Vrushank, and Alex</Typography>
 
