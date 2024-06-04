@@ -27,7 +27,7 @@ seg = AutoSegmenter()
 WEB_X = 400
 WEB_Y = 400
 
-USER_MASK_MARGIN = 20
+USER_MASK_MARGIN = 5
 
 G_BLUR = True
 
