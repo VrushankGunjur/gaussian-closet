@@ -17,6 +17,8 @@ import time
 import cv2
 from mmpose.apis import MMPoseInferencer
 
+from run_inference import inference_single_image
+
 # Dimensions of the PreviewWorkspace canvas in the UI
 # Needed for projecting 
 WEB_X = 400
@@ -206,7 +208,7 @@ def generate():
     torch.cuda.empty_cache()
 
     #print('inference')
-    from run_inference import inference_single_image
+    
 
     id = str(uuid.uuid1())
 
