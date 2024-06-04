@@ -67,7 +67,7 @@ def segment():
 
     if ROUTE_SEGMENT:
         # forward the json request along
-        res = requests.post("http://34.125.21.211/api/segment", json=request.get_json())
+        res = requests.post("http://34.125.21.211:5000/api/segment", json=request.get_json())
 
         res_ = res.json()
         
