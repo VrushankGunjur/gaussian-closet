@@ -76,6 +76,7 @@ const PreviewWorkspace = forwardRef((props, ref) => {
         });
 
         canvas.renderAll();
+        props.updateCanvas(canvas);
     }
 
     useImperativeHandle(ref, () => ({

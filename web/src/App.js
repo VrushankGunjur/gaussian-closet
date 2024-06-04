@@ -84,26 +84,40 @@ const App = () => {
 
         let urls = [];
         let coords = [];
-        let paths = [];
+        let paths_bg = [];
+        let paths_fg = [];
 
         workspaceCanvas.getObjects().forEach(function(object) {
             if ("path" in object) {
-                paths.push(object.toSVG());
+                paths_bg.push(object.toSVG());
             } else {
                 urls.push(object._element.currentSrc);
                 coords.push(object.lineCoords);
             }
         });
 
-        paths.push("NONE"); // to prevent index OOB
+        previewCanvas.getObjects().forEach(function(object) {
+            if ("path" in object) {
+                paths_fg.push(object.toSVG());
+            } else {
+                // urls.push(object._element.currentSrc);
+                // coords.push(object.lineCoords);
+            }
+        });
+
+        paths_bg.push("NONE"); // to prevent index OOB
+        paths_fg.push("NONE"); // to prevent index OOB
         
+        console.log(paths_bg)
+        console.log(paths_fg)
+
         let data = {
             bg_cloth_id: bg_cloth_id,
             fg_cloth_id: fg_cloth_id,
             request_id: cur_request_id,
             segment_type: 'partial',
-            bg_path: paths[0],
-            fg_path: "NONE"
+            bg_path: paths_bg[0],
+            fg_path: paths_fg[0]
         }
 
         try {
