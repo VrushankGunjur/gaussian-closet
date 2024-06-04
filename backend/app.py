@@ -67,12 +67,16 @@ def segment():
 
     if ROUTE_SEGMENT:
         # forward the json request along
-        res = requests.post("http://34.125.21.211:5000/api/segment", json=request.get_json())
+        content = request.get_json()
+        res = requests.post("http://34.125.21.211:5000/api/segment", json=content)
+
+        bg = get_img(content["bg_image_url"])
+        fg = get_img(content["fg_image_url"])
 
         res_ = res.json()
         
-        bg_mask = Image.frombuffer(res_["bg_mask"])
-        fg_mask = Image.frombuffer(res_["fg_mask"])
+        bg_mask = Image.frombuffer("L", bg.size, res_["bg_mask"])
+        fg_mask = Image.frombuffer("L", fg.size, res_["fg_mask"])
 
         mask_map[bg_cloth_id] = bg_mask
         mask_map[fg_cloth_id] = fg_mask
