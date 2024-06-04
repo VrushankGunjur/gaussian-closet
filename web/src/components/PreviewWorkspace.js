@@ -54,7 +54,7 @@ const PreviewWorkspace = forwardRef((props, ref) => {
         });
 
         canvasRef.current.isDrawingMode = true;
-        canvasRef.current.freeDrawingBrush.width = 10;
+        canvasRef.current.freeDrawingBrush.width = 3;
         canvasRef.current.freeDrawingBrush.color = 'rgba(255, 255, 255, 0.5)';
     }
 

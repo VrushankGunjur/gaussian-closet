@@ -22,6 +22,8 @@ from mmpose.apis import MMPoseInferencer
 WEB_X = 400
 WEB_Y = 400
 
+USER_MASK_MARGIN = 20
+
 G_BLUR = True
 
 mask_map = {}
@@ -182,7 +184,7 @@ def generate():
             bg_mask_user = np.array(svg_to_mask(content['bg_path'], bg.size, "bg_mask"))
             bg_mask_user = upscale_mask(bg_mask_user[:WEB_X, :WEB_Y], (bg.size[1], bg.size[0]))
 
-            bf_mask_user = widen_mask(bg_mask_user, iterations=5)
+            bg_mask_user = widen_mask(bg_mask_user, iterations=USER_MASK_MARGIN)
 
             # Image.fromarray(bg_mask_user.astype(np.uint8)*255).save(f"./masks/USER_bg_mask-13.jpg")
             bg_mask = np.logical_or(bg_mask, bg_mask_user)
@@ -194,7 +196,7 @@ def generate():
             fg_mask_user = np.array(svg_to_mask(content['fg_path'], fg.size, "fg_mask"))
             fg_mask_user = upscale_mask(fg_mask_user[:WEB_X, :WEB_Y], (fg.size[1], fg.size[0]))
 
-            fg_mask_user = widen_mask(fg_mask_user, iterations=5)
+            fg_mask_user = widen_mask(fg_mask_user, iterations=USER_MASK_MARGIN)
 
             fg_mask = np.logical_or(fg_mask, fg_mask_user)
             # fg_mask = union_mask(fg_mask, fg_mask_user)

@@ -192,7 +192,7 @@ const App = () => {
         });
 
         workspaceCanvas.isDrawingMode = true;
-        workspaceCanvas.freeDrawingBrush.width = 10;
+        workspaceCanvas.freeDrawingBrush.width = 3;
         workspaceCanvas.freeDrawingBrush.color = 'rgba(255, 255, 255, 0.5)';
     }
 
