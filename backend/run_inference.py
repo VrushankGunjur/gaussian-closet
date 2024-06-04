@@ -25,12 +25,10 @@ config = OmegaConf.load('./configs/inference.yaml')
 model_ckpt =  config.pretrained_model
 model_config = config.config_file
 
-# model = create_model(model_config ).cpu()
-# model.load_state_dict(load_state_dict(model_ckpt, location='cuda'))
-# model = model.cuda()
-# ddim_sampler = DDIMSampler(model)
-model = None
-ddim_sampler = None
+model = create_model(model_config ).cpu()
+model.load_state_dict(load_state_dict(model_ckpt, location='cuda'))
+model = model.cuda()
+ddim_sampler = DDIMSampler(model)
 
 
 def aug_data_mask(image, mask):
@@ -236,10 +234,10 @@ def crop_back( pred, tar_image,  extra_sizes, tar_box_yyxx_crop):
 
 def inference_single_image(ref_image, ref_mask, tar_image, tar_mask, guidance_scale = 5.0):
     ### LOADING WEIGHTS INTO GPU
-    # model = create_model(model_config ).cpu()
-    # model.load_state_dict(load_state_dict(model_ckpt, location='cuda'))
-    # model = model.cuda()
-    # ddim_sampler = DDIMSampler(model)
+    #model = create_model(model_config ).cpu()
+    #model.load_state_dict(load_state_dict(model_ckpt, location='cuda'))
+    #model = model.cuda()
+    #ddim_sampler = DDIMSampler(model)
 
     raw_background = tar_image.copy()
     item = process_pairs(ref_image, ref_mask, tar_image, tar_mask, enable_shape_control = True)
