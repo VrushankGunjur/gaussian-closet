@@ -17,6 +17,11 @@ import time
 import cv2
 from mmpose.apis import MMPoseInferencer
 
+from run_inference import inference_single_image
+
+from auto_segmenter import AutoSegmenter
+seg = AutoSegmenter()
+
 # Dimensions of the PreviewWorkspace canvas in the UI
 # Needed for projecting 
 WEB_X = 400
@@ -101,8 +106,6 @@ def segment():
     torch.cuda.empty_cache()
     segment_start_time = time.time()
     if bg_mask is None or fg_mask is None:
-        from auto_segmenter import AutoSegmenter
-        seg = AutoSegmenter()
         if bg_mask is None:
             bg_masks = seg.run_segmenter_single(bg, [cloth_type])
             bg_mask = bg_masks[0][0]
@@ -214,7 +217,7 @@ def generate():
     torch.cuda.empty_cache()
 
     #print('inference')
-    from run_inference import inference_single_image
+    
 
     id = str(uuid.uuid1())
 
