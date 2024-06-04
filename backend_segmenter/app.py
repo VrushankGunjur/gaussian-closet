@@ -12,6 +12,9 @@ from auto_segmenter import AutoSegmenter
 
 from io import BytesIO
 
+mask_map = {}
+request_to_imgs = {}
+
 def clip_base64_imgtags(url):
     return url[url.find("base64,")+len("base64,"):]
 
@@ -112,11 +115,11 @@ def segment():
 
     #base64bg = bg_mask.tobytes()
     buffered_bg = BytesIO()
-    # bg_mask.save(buffered_bg, format="JPEG")
+    bg_mask.save(buffered_bg, format="JPEG")
     base64bg = base64.b64encode(buffered_bg.getvalue())
 
     buffered_fg = BytesIO()
-    # fg_mask.save(buffered_fg, format="JPEG")
+    fg_mask.save(buffered_fg, format="JPEG")
     base64fg = base64.b64encode(buffered_fg.getvalue())
 
     # should we be decoding here?
