@@ -74,9 +74,12 @@ def segment():
         fg = get_img(content["fg_image_url"])
 
         res_ = res.json()
+
+        print(res_["bg_mask"])
+        print(type(res_["bg_mask"]))
         
-        bg_mask = Image.frombuffer("L", bg.size, res_["bg_mask"])
-        fg_mask = Image.frombuffer("L", fg.size, res_["fg_mask"])
+        bg_mask = Image.frombytes("L", bg.size, res_["bg_mask"])
+        fg_mask = Image.frombytes("L", fg.size, res_["fg_mask"])
 
         mask_map[bg_cloth_id] = bg_mask
         mask_map[fg_cloth_id] = fg_mask
