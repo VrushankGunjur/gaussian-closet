@@ -82,14 +82,20 @@ def segment():
 
     bg_mask = None
     fg_mask = None
+
+    fg_mask_new = True
+    bg_mask_new = True
+
     # look up fg and bg in the in-memory map to see if we have the masks for the segment target already
     if bg_cloth_id in mask_map:
         print('using cached background mask')
         bg_mask = mask_map[bg_cloth_id]
+        bg_mask_new = False
     
     if fg_cloth_id in mask_map:
         print('using cached foreground mask')
         fg_mask = mask_map[fg_cloth_id]
+        fg_mask_new = False
 
     print('clearing cache again')
     torch.cuda.empty_cache()
@@ -133,8 +139,10 @@ def segment():
     #     bg_mask = widen_mask(bg_mask)
     #     fg_mask = widen_mask(fg_mask)
 
-    bg_mask = widen_mask(bg_mask, 5)
-    fg_mask = widen_mask(fg_mask, 3)
+    if bg_mask_new:
+        bg_mask = widen_mask(bg_mask, 5)
+    if fg_mask_new:
+        fg_mask = widen_mask(fg_mask, 3)
 
     print(f"Widening took {time.time() - widen_start_time} seconds")
 
