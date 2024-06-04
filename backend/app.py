@@ -15,6 +15,7 @@ import torch
 from custom_utils import *
 import time
 import cv2
+from mmpose.apis import MMPoseInferencer
 
 # Dimensions of the PreviewWorkspace canvas in the UI
 # Needed for projecting 
@@ -33,6 +34,8 @@ app.config["CORS_HEADERS"] = "Content-Type"
 def clip_base64_imgtags(url):
     return url[url.find("base64,")+len("base64,"):]
 
+def pose_similarity(keypoints1, keypoints2):
+    return np.mean(np.square(keypoints1 - keypoints2))
 
 def get_img(url):
     if url.find("base64") != -1:
@@ -54,6 +57,9 @@ def index():
 def segment():
     global mask_map
     global request_to_imgs
+    
+    print("current state of the mask_map")
+    print(mask_map.keys())
    
     print('clearing cache')
     torch.cuda.empty_cache()
@@ -163,6 +169,8 @@ def generate():
     content = request.get_json()
     bg, fg = request_to_imgs[str(content["request_id"])]
 
+    
+
     bg_mask = mask_map[content["bg_cloth_id"]]
     fg_mask = mask_map[content["fg_cloth_id"]]
 
@@ -176,9 +184,9 @@ def generate():
 
             bf_mask_user = widen_mask(bg_mask_user, iterations=5)
 
-            Image.fromarray(bg_mask_user.astype(np.uint8)*255).save(f"./masks/USER_bg_mask-13.jpg")
+            # Image.fromarray(bg_mask_user.astype(np.uint8)*255).save(f"./masks/USER_bg_mask-13.jpg")
             bg_mask = np.logical_or(bg_mask, bg_mask_user)
-            Image.fromarray(bg_mask.astype(np.uint8)*255).save(f"./masks/UNIONED-13.jpg")
+            #Image.fromarray(bg_mask.astype(np.uint8)*255).save(f"./masks/UNIONED-13.jpg")
             # bg_mask = union_mask(bg_mask, bg_mask_user)
         
         if (content['fg_path'] != "NONE"):  
@@ -200,18 +208,34 @@ def generate():
 
     id = str(uuid.uuid1())
 
-    Image.fromarray(fg_mask.astype(np.uint8)*255).save(f"./masks/fg_mask_{id}.jpg")
-    Image.fromarray(bg_mask.astype(np.uint8)*255).save(f"./masks/bg_mask_{id}.jpg")
+    # save #1
+    bg.save(f"./data/original-image/{id}.jpg")
+    fg.save(f"./data/orginal-item/{id}.jpg")
+
+    # save #2
+    Image.fromarray(fg_mask.astype(np.uint8)*255).save(f"./data/fg-mask/{id}.jpg")
+
+    # save #3
+    Image.fromarray(bg_mask.astype(np.uint8)*255).save(f"./data/bg-mask/{id}.jpg")
+    
+
+    #bg.save(f"./ex1/bg_input.jpg")
+    #fg.save(f"./ex1/fg_input.jpg")
 
     task = AnyDoorTask(bg, bg_mask, fg, fg_mask, inference_single_image)
 
     Image.fromarray(bg_mask.astype(np.uint8)*255).save(f"./masks_in_generate/masktoanydoor-{id}.jpg")
     # Image.fromarray(bg.astype(np.uint8)).save(f"./masks_in_generate/bgtoanydoor-{id}.jpg")
-    bg.save(f"./masks_in_generate/bgtoanydoor-{id}.jpg")
+    #bg.save(f"./masks_in_generate/bgtoanydoor-{id}.jpg")
+    
     # out is the generated image
     out_arr = task.run()
     out = Image.fromarray(out_arr.astype(np.uint8))
-    out.save(f"./imgs/direct_from_model_{id}.jpg")
+    #out.save(f"./imgs/direct_from_model_{id}.jpg")
+    #out.save(f"./ex1/direct_from_model.jpg")
+
+    # save #4
+    out.save(f"./data/anydoor-output/{id}.jpg")
 
     # mask out all of the generation that we don't want
     bg_mask = bg_mask.astype(bool)
@@ -221,25 +245,77 @@ def generate():
     bg_arr = np.array(bg)
     #Image.fromarray(bg_arr.astype(np.uint8)).save(f"./intermediates/keep_from_og_{id}.jpg")
 
+
+
     # Do Gaussian blur for generating final mask
     # Else do simple copy paste
     if G_BLUR:
         fuzzy_mask = blur_mask(bg_mask)
         fuzzy_mask = np.stack([fuzzy_mask, fuzzy_mask, fuzzy_mask], axis=2)
         generation = fuzzy_mask * out_arr + (np.ones(fuzzy_mask.shape).astype(np.double) - fuzzy_mask) * bg_arr
+        
+        # save the case of now gaussian blur
+        out_arr[~bg_mask] = 0
+        bg_arr[bg_mask] = 0
+        temp = bg_arr + out_arr
+        Image.fromarray(temp.astype(np.uint8)).save(f"./data/final-output-no-blur/{id}.jpg")
     else:
         out_arr[~bg_mask] = 0
         bg_arr[bg_mask] = 0
         generation = bg_arr + out_arr
 
     gen = Image.fromarray(generation.astype(np.uint8))
-    gen.save(f"./generations/{id}.jpg")
+    #gen.save(f"./ex1/generation_gblur.jpg")
+    # gen.save(f"./generations/{id}.jpg")
+    gen.save(f"./data/final-output/{id}.jpg")
 
+    # ----- Based on the assumption that the pose generated in the out image is more accurate, we want to ensure that the cropping done to make the gen image doesn't cut off any important parts of the pose
+    # generate pose from 'out' and from 'gen' 
+    '''
+    # Instantiate the inferencer using the model alias
+    inferencer = MMPoseInferencer('human')
+
+    # Generate pose from 'out'
+    result_generator_out = inferencer(f"./imgs/direct_from_model_{id}.jpg", show=True)
+    result_out = next(result_generator_out)
+    keypoints_out = result_out['predictions'][0][0]['keypoints']
+
+    # Save the pose visualization for 'out'
+    vis_image_out = result_out['visualization'][0]
+    vis_image_out.save(f"./poses/pose_out_{id}.jpg")
+
+    # Generate pose from 'gen'
+    result_generator_gen = inferencer(f"./generations/{id}.jpg", show=True)
+    result_gen = next(result_generator_gen)
+    keypoints_gen = result_gen['predictions'][0][0]['keypoints']
+
+    # Save the pose visualization for 'gen'
+    vis_image_gen = result_gen['visualization'][0]
+    vis_image_gen.save(f"./poses/pose_gen_{id}.jpg")
+
+    # Compare how similar the keypoints are (you can use any similarity metric)
+    similarity_threshold = 0.8  # Adjust this threshold based on your requirement
+    similarity = pose_similarity(keypoints_out, keypoints_gen)
+
+    print(f"Similarity: {similarity}")
+
+    # Decide which image to return
+    if similarity < similarity_threshold:
+        final_image = out
+    else:
+        final_image = gen
+
+    # Save or return the final image as needed
+    final_image.save(f"./final_output/{id}.jpg")
+        
+
+    # ----- 
+    '''
     base64img = None
 
     #print('clearing cache')
     torch.cuda.empty_cache()
-    with open(f"./generations/{id}.jpg", "rb") as image_file:
+    with open(f"./data/final-output/{id}.jpg", "rb") as image_file:
         base64img = base64.b64encode(image_file.read()).decode("utf-8")
 
     return { "id": id, "image": base64img }
