@@ -17,6 +17,8 @@ import time
 import cv2
 from mmpose.apis import MMPoseInferencer
 
+from run_inference import inference_single_image
+
 # Dimensions of the PreviewWorkspace canvas in the UI
 # Needed for projecting 
 WEB_X = 400
@@ -25,6 +27,8 @@ WEB_Y = 400
 USER_MASK_MARGIN = 20
 
 G_BLUR = True
+
+ROUTE_SEGMENT = True
 
 mask_map = {}
 request_to_imgs = {}
@@ -49,6 +53,7 @@ def get_img(url):
         response = requests.get(url)
         img = Image.open(BytesIO(response.content))
         return img
+    
 @app.route("/")
 @cross_origin()
 def index():
@@ -59,7 +64,13 @@ def index():
 def segment():
     global mask_map
     global request_to_imgs
+
+    if ROUTE_SEGMENT:
+        # forward the json request along
+        res = requests.post("http://localhost:5001/api/segment", json=request.get_json())
+        return res.json()
     
+    # Otherwise local segment
     print("current state of the mask_map")
     print(mask_map.keys())
    
@@ -171,8 +182,6 @@ def generate():
     content = request.get_json()
     bg, fg = request_to_imgs[str(content["request_id"])]
 
-    
-
     bg_mask = mask_map[content["bg_cloth_id"]]
     fg_mask = mask_map[content["fg_cloth_id"]]
 
@@ -203,10 +212,9 @@ def generate():
 
     
     #print('clearing cache')
-    torch.cuda.empty_cache()
+    # torch.cuda.empty_cache()
 
     #print('inference')
-    from run_inference import inference_single_image
 
     id = str(uuid.uuid1())
 
