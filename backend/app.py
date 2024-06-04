@@ -70,19 +70,36 @@ def segment():
         content = request.get_json()
         res = requests.post("http://34.125.21.211:5000/api/segment", json=content)
 
+        res_ = res.json()
+
         bg = get_img(content["bg_image_url"])
         fg = get_img(content["fg_image_url"])
 
-        res_ = res.json()
+        request_id = res_["request_id"]
 
-        print(res_["bg_mask"])
+        request_to_imgs[request_id] = (bg, fg)
+
+
+        print(bg.size)
         print(type(res_["bg_mask"]))
-        
-        bg_mask = Image.frombytes("L", bg.size, res_["bg_mask"])
-        fg_mask = Image.frombytes("L", fg.size, res_["fg_mask"])
 
-        mask_map[bg_cloth_id] = bg_mask
-        mask_map[fg_cloth_id] = fg_mask
+        bg_bytes = res_["bg_mask"].encode('utf-8')
+        bg_bytesio = io.BytesIO(bg_bytes)
+
+        fg_bytes = res_["fg_mask"].encode('utf-8')
+        fg_bytesio = io.BytesIO(fg_bytes)
+        
+        #bg_mask = Image.frombytes("L", bg.size, bg_bytesio.getvalue())
+        #fg_mask = Image.frombytes("L", fg.size, fg_bytesio.getvalue())
+
+        bg_mask = Image.open(io.BytesIO(base64.b64decode(res_["bg_mask"])))
+        fg_mask = Image.open(io.BytesIO(base64.b64decode(res_["fg_mask"])))
+
+        bg_cloth_id = content["bg_cloth_id"]
+        fg_cloth_id = content["fg_cloth_id"]
+
+        mask_map[bg_cloth_id] = np.array(bg_mask)
+        mask_map[fg_cloth_id] = np.array(fg_mask)
 
         return res_
     
